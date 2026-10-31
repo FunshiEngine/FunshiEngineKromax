@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
+    FunshiEngineKX - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,8 +33,8 @@
 #include <string>
 
 #include "TempPruebas.h"
-#include "../FunshiEngineC/src/Configuracion/EditorConfig.h"
-#include "../FunshiEngineC/src/Objetos/Componentes/Model.h"
+#include "../FunshiEngineKX/src/Configuracion/EditorConfig.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/Model.h"
 
 namespace fs = std::filesystem;
 
@@ -108,7 +108,7 @@ int main() {
     {
         const fs::path archivo = base / "117bytes.bin";
         const std::string path =
-            "/home/ggmaster/Projects/FunshiEngineC/FunshiEngineC/build/"
+            "/home/ggmaster/Projects/FunshiEngineKX/FunshiEngineKX/build/"
             "MotorGrafico/NuevoProyecto/srcNuevoProyecto/Personaje.obj";
         CHECK(path.size() == 117, "el path de regresion mide 117 bytes");
         {

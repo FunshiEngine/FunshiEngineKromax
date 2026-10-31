@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
+    FunshiEngineKX - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@
 #include <iostream>
 #include <string>
 
-#include "../FunshiEngineC/src/GUI/Estado/BarraProgresoTexto.h"
+#include "../FunshiEngineKX/src/GUI/Estado/BarraProgresoTexto.h"
 
 namespace {
 

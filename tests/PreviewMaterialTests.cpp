@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineKX - Motor de juegos 3D con OpenGL e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,9 +36,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../FunshiEngineC/src/Objetos/Componentes/Material.h"
-#include "../FunshiEngineC/src/Rendering/Preview/PreviewMaterial.h"
-#include "../FunshiEngineC/src/Rendering/Shaders/GestorShaders.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/Material.h"
+#include "../FunshiEngineKX/src/Rendering/Preview/PreviewMaterial.h"
+#include "../FunshiEngineKX/src/Rendering/Shaders/GestorShaders.h"
 
 using Rendering::Backend::BlendMode;
 using Rendering::Backend::DepthFunc;

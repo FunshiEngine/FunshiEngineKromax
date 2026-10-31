@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineKX - Motor de juegos 3D con OpenGL e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,10 +38,10 @@
 
 #include <glm/glm.hpp>
 
-#include "../FunshiEngineC/src/Iluminacion/MatrizLuz.h"
-#include "../FunshiEngineC/src/Objetos/Componentes/Sombras/Sombras.h"
-#include "../FunshiEngineC/src/Rendering/Shaders/ShaderSources.h"
-#include "../FunshiEngineC/src/Rendering/Sombras/MapaSombras.h"
+#include "../FunshiEngineKX/src/Iluminacion/MatrizLuz.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/Sombras/Sombras.h"
+#include "../FunshiEngineKX/src/Rendering/Shaders/ShaderSources.h"
+#include "../FunshiEngineKX/src/Rendering/Sombras/MapaSombras.h"
 #include "TempPruebas.h"
 
 using Rendering::Backend::BlendMode;

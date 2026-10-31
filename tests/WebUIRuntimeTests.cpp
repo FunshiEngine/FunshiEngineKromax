@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
+    FunshiEngineKX - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,11 +40,11 @@
 #include <thread>
 #include <vector>
 
-#include "../FunshiEngineC/src/Objetos/Componentes/InterfaceComponent.h"
-#include "../FunshiEngineC/src/WebUI/EstadoInterfaces.h"
-#include "../FunshiEngineC/src/WebUI/VistaWebUI.h"
-#include "../FunshiEngineC/src/WebUI/VistasWebUI.h"
-#include "../FunshiEngineC/src/WebUI/WebUIRuntime.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/InterfaceComponent.h"
+#include "../FunshiEngineKX/src/WebUI/EstadoInterfaces.h"
+#include "../FunshiEngineKX/src/WebUI/VistaWebUI.h"
+#include "../FunshiEngineKX/src/WebUI/VistasWebUI.h"
+#include "../FunshiEngineKX/src/WebUI/WebUIRuntime.h"
 
 namespace {
 

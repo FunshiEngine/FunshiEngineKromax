@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
+    FunshiEngineKX - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,13 +36,13 @@
 #include <vector>
 
 #include "TempPruebas.h"
-#include "../FunshiEngineC/src/Behaviour/Backends/ComandoCompilacionCpp.h"
-#include "../FunshiEngineC/src/Behaviour/Backends/RutaCabecerasScript.h"
-#include "../FunshiEngineC/src/Behaviour/Backends/ResolucionJdk.h"
-#include "../FunshiEngineC/src/Behaviour/Backends/SondeoToolchain.h"
-#include "../FunshiEngineC/src/Behaviour/IScriptBehaviour.h"
-#include "../FunshiEngineC/src/Behaviour/ScriptAudioHandles.h"
-#include "../FunshiEngineC/src/Input/InputScripts.h"
+#include "../FunshiEngineKX/src/Behaviour/Backends/ComandoCompilacionCpp.h"
+#include "../FunshiEngineKX/src/Behaviour/Backends/RutaCabecerasScript.h"
+#include "../FunshiEngineKX/src/Behaviour/Backends/ResolucionJdk.h"
+#include "../FunshiEngineKX/src/Behaviour/Backends/SondeoToolchain.h"
+#include "../FunshiEngineKX/src/Behaviour/IScriptBehaviour.h"
+#include "../FunshiEngineKX/src/Behaviour/ScriptAudioHandles.h"
+#include "../FunshiEngineKX/src/Input/InputScripts.h"
 
 using namespace ReflejoScripts;
 namespace fs = std::filesystem;
@@ -952,10 +952,10 @@ CHECK(RutaCabecerasScript::resolver(relativaSoloJuntoAlExe, "",
     {
         const std::filesystem::path raizRepo =
             std::filesystem::path(__FILE__).parent_path().parent_path();
-        const std::filesystem::path iss = raizRepo / "FunshiEngineC" / "packaging" /
-                             "FunshiEngineC_setup.iss";
+        const std::filesystem::path iss = raizRepo / "FunshiEngineKX" / "packaging" /
+                             "FunshiEngineKX_setup.iss";
         std::ifstream f(iss);
-        CHECK(f.good(), "se encuentra FunshiEngineC_setup.iss para auditarlo");
+        CHECK(f.good(), "se encuentra FunshiEngineKX_setup.iss para auditarlo");
         std::string texto((std::istreambuf_iterator<char>(f)),
                           std::istreambuf_iterator<char>());
 

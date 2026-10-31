@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
+    FunshiEngineKX - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,19 +33,19 @@
 #include <vector>
 
 #include "TempPruebas.h"
-#include "../FunshiEngineC/src/Behaviour/ScriptGameObject.h"
-#include "../FunshiEngineC/src/Configuracion/EditorConfig.h"
-#include "../FunshiEngineC/src/Objetos/GameObject.h"
-#include "../FunshiEngineC/src/Objetos/GameObjectFactory.h"
-#include "../FunshiEngineC/src/Objetos/Prefab.h"
-#include "../FunshiEngineC/src/Objetos/PrefabLibrary.h"
-#include "../FunshiEngineC/src/Objetos/Componentes/Color.h"
-#include "../FunshiEngineC/src/Objetos/Componentes/Model.h"
-#include "../FunshiEngineC/src/Objetos/Componentes/Transform.h"
-#include "../FunshiEngineC/src/Scenes/EditorController.h"
-#include "../FunshiEngineC/src/Scenes/SceneRegistry.h"
-#include "../FunshiEngineC/src/Events/EventBus.h"
-#include "../FunshiEngineC/src/Assets/AssetManager.h"
+#include "../FunshiEngineKX/src/Behaviour/ScriptGameObject.h"
+#include "../FunshiEngineKX/src/Configuracion/EditorConfig.h"
+#include "../FunshiEngineKX/src/Objetos/GameObject.h"
+#include "../FunshiEngineKX/src/Objetos/GameObjectFactory.h"
+#include "../FunshiEngineKX/src/Objetos/Prefab.h"
+#include "../FunshiEngineKX/src/Objetos/PrefabLibrary.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/Color.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/Model.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/Transform.h"
+#include "../FunshiEngineKX/src/Scenes/EditorController.h"
+#include "../FunshiEngineKX/src/Scenes/SceneRegistry.h"
+#include "../FunshiEngineKX/src/Events/EventBus.h"
+#include "../FunshiEngineKX/src/Assets/AssetManager.h"
 
 namespace fs = std::filesystem;
 

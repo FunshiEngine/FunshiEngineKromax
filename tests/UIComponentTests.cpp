@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineKX - Motor de juegos 3D con OpenGL e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@
 #include <string>
 
 #include "TempPruebas.h"
-#include "../FunshiEngineC/src/Objetos/Componentes/UIComponent.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/UIComponent.h"
 
 namespace {
 

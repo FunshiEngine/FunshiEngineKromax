@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
+    FunshiEngineKX - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,16 +34,16 @@
 #include <memory>
 #include <string>
 
-#include "../FunshiEngineC/src/Objetos/Componentes/Animador2D.h"
-#include "../FunshiEngineC/src/Objetos/Componentes/CatalogoComponentes.h"
-#include "../FunshiEngineC/src/Objetos/Componentes/CameraComponent.h"
-#include "../FunshiEngineC/src/Objetos/Componentes/Colliders/EsfereCollider.h"
-#include "../FunshiEngineC/src/Objetos/Componentes/ComponentFactory.h"
-#include "../FunshiEngineC/src/Objetos/Componentes/RigidBody/RigidBody.h"
-#include "../FunshiEngineC/src/Objetos/Componentes/SpriteRenderer.h"
-#include "../FunshiEngineC/src/Objetos/Componentes/Transform.h"
-#include "../FunshiEngineC/src/Objetos/GameObject.h"
-#include "../FunshiEngineC/src/Objetos/GameObjectFactory.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/Animador2D.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/CatalogoComponentes.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/CameraComponent.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/Colliders/EsfereCollider.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/ComponentFactory.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/RigidBody/RigidBody.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/SpriteRenderer.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/Transform.h"
+#include "../FunshiEngineKX/src/Objetos/GameObject.h"
+#include "../FunshiEngineKX/src/Objetos/GameObjectFactory.h"
 
 int total = 0;
 int fallos = 0;

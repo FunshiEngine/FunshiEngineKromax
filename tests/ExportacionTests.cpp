@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineKX - Motor de juegos 3D con OpenGL e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,12 +34,12 @@
 #include <iostream>
 #include <string>
 
-#include "../FunshiEngineC/src/Exportador/EstadoExportacion.h"
-#include "../FunshiEngineC/src/Exportador/GameExporter.h"
-#include "../FunshiEngineC/src/Exportador/ImportacionesPE.h"
-#include "../FunshiEngineC/src/Exportador/PrecondicionesExportacion.h"
-#include "../FunshiEngineC/src/GUI/Export/ExportDialog.h"
-#include "../FunshiEngineC/src/GUI/SceneGUI/SceneMenuBarInterface.h"
+#include "../FunshiEngineKX/src/Exportador/EstadoExportacion.h"
+#include "../FunshiEngineKX/src/Exportador/GameExporter.h"
+#include "../FunshiEngineKX/src/Exportador/ImportacionesPE.h"
+#include "../FunshiEngineKX/src/Exportador/PrecondicionesExportacion.h"
+#include "../FunshiEngineKX/src/GUI/Export/ExportDialog.h"
+#include "../FunshiEngineKX/src/GUI/SceneGUI/SceneMenuBarInterface.h"
 
 int total = 0;
 int fallos = 0;

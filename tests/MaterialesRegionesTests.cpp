@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineKX - Motor de juegos 3D con OpenGL e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,12 +36,12 @@
 #include <string>
 #include <vector>
 
-#include "../FunshiEngineC/src/Objetos/Componentes/IMaterial.h"
-#include "../FunshiEngineC/src/Objetos/Componentes/Material.h"
-#include "../FunshiEngineC/src/Objetos/Componentes/Materiales.h"
-#include "../FunshiEngineC/src/Objetos/Componentes/ResolvedorMateriales.h"
-#include "../FunshiEngineC/src/Objetos/GameObject.h"
-#include "../FunshiEngineC/src/Objetos/GameObjectFactory.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/IMaterial.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/Material.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/Materiales.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/ResolvedorMateriales.h"
+#include "../FunshiEngineKX/src/Objetos/GameObject.h"
+#include "../FunshiEngineKX/src/Objetos/GameObjectFactory.h"
 #include "../tests/TempPruebas.h"
 
 int total = 0;

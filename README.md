@@ -1,4 +1,4 @@
-# FunshiEngineC
+# FunshiEngineKX
 
 Motor y editor de juegos en tiempo real escrito en C++17, con interfaz Dear ImGui y arquitectura modular (backends intercambiables).
 
@@ -9,15 +9,15 @@ Este repositorio define el **contrato de render** —qué recursos, estados y un
 ## Compilación
 
 ```bash
-cmake -S FunshiEngineC -B FunshiEngineC/build \
+cmake -S FunshiEngineKX -B FunshiEngineKX/build \
     -DCMAKE_BUILD_TYPE=Release -DENABLE_ASAN=OFF -DFUNSHI_JAVA=ON
-cmake --build FunshiEngineC/build -j$(nproc)
+cmake --build FunshiEngineKX/build -j$(nproc)
 ```
 
 ## Ejecución
 
 ```bash
-cd FunshiEngineC && ./build/FunshiEngineC
+cd FunshiEngineKX && ./build/FunshiEngineKX
 ```
 
 ## Documentación

@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
+    FunshiEngineKX - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,9 +25,9 @@
 #include <memory>
 #include <string>
 
-#include "../FunshiEngineC/src/Assets/Image.h"
-#include "../FunshiEngineC/src/Assets/TextureException.h"
-#include "../FunshiEngineC/src/Assets/TextureManager.h"
+#include "../FunshiEngineKX/src/Assets/Image.h"
+#include "../FunshiEngineKX/src/Assets/TextureException.h"
+#include "../FunshiEngineKX/src/Assets/TextureManager.h"
 
 namespace {
 int total = 0;

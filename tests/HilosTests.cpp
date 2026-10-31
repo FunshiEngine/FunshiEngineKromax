@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineKX - Motor de juegos 3D con OpenGL e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,9 +37,9 @@
 #include <vector>
 
 #include "TempPruebas.h"
-#include "../FunshiEngineC/src/Diagnosticos/RegistroDiagnosticos.h"
-#include "../FunshiEngineC/src/Hilos/HiloActual.h"
-#include "../FunshiEngineC/src/Hilos/MotorHilos.h"
+#include "../FunshiEngineKX/src/Diagnosticos/RegistroDiagnosticos.h"
+#include "../FunshiEngineKX/src/Hilos/HiloActual.h"
+#include "../FunshiEngineKX/src/Hilos/MotorHilos.h"
 
 int total = 0;
 int fallos = 0;

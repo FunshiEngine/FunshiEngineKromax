@@ -93,40 +93,40 @@ install_manifest.txt
 *.orig
 
 # Build directories
-FunshiEngineC/build/
-FunshiEngineC/build_temp/
-FunshiEngineC/build_cli_msvc/
-FunshiEngineC/build_terminal_msvc/
-FunshiEngineC/build_pty_tests/
-FunshiEngineC/build-win/
-FunshiEngineC_BACKUP/
+FunshiEngineKX/build/
+FunshiEngineKX/build_temp/
+FunshiEngineKX/build_cli_msvc/
+FunshiEngineKX/build_terminal_msvc/
+FunshiEngineKX/build_pty_tests/
+FunshiEngineKX/build-win/
+FunshiEngineKX_BACKUP/
 # Build dirs en la raiz del repo (build-release de desarrollo, build-java, etc.)
 /build-*/
 
 # Empaquetado Windows (montaje y setup generados por HacerInstalador.bat / CI)
-FunshiEngineC/packaging/dist/
-FunshiEngineC/packaging/instalador/
+FunshiEngineKX/packaging/dist/
+FunshiEngineKX/packaging/instalador/
 
 # Empaquetado Linux (Qt IFW): instaladores .run generados localmente
-FunshiEngineC/packaging/ifw/output/
-FunshiEngineC/*.run
+FunshiEngineKX/packaging/ifw/output/
+FunshiEngineKX/*.run
 
 # Sondas de depuración desechables (evidencia empírica de los análisis de
 # bugs: compilan y se ejecutan fuera del build, pero no son código del motor
 # ni del juego)
-FunshiEngineC/sondas/
+FunshiEngineKX/sondas/
 
 # Distribución CEF descargada en configure (Fase 4 WebUI): ~657 MB el tarball
 # y ~3.6 GB extraída. No se versiona; CMake la deja bajo el build dir.
-FunshiEngineC/.cef/
-FunshiEngineC/.cef_cache/
+FunshiEngineKX/.cef/
+FunshiEngineKX/.cef_cache/
 
 # Temporary refactoring/build scripts
-FunshiEngineC/fix_build.py
-FunshiEngineC/gui_contents.txt
-FunshiEngineC/patch_cube.py
-FunshiEngineC/refactor_all.py
-FunshiEngineC/refactor_gui.py
+FunshiEngineKX/fix_build.py
+FunshiEngineKX/gui_contents.txt
+FunshiEngineKX/patch_cube.py
+FunshiEngineKX/refactor_all.py
+FunshiEngineKX/refactor_gui.py
 
 # Memoria de trabajo de los agentes: todo el estado local que un agente
 # necesita para retomar sin re-investigar, y que no es documentación del
@@ -144,6 +144,6 @@ FunshiEngineC/refactor_gui.py
 imgui.ini
 
 # ImGuizmo examples
-FunshiEngineC/ImGuizmo/example/
-FunshiEngineC/ImGuizmo/vcpkg-example/
+FunshiEngineKX/ImGuizmo/example/
+FunshiEngineKX/ImGuizmo/vcpkg-example/
 .aider*

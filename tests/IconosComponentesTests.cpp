@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineKX - Motor de juegos 3D con OpenGL e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,9 +34,9 @@
 #include <string>
 #include <vector>
 
-#include "../FunshiEngineC/src/Herramientas/IconosGUI/ReglaIconoCatalogo.h"
-#include "../FunshiEngineC/src/Herramientas/IconosGUI/RutasIconos.h"
-#include "../FunshiEngineC/src/Objetos/Componentes/CatalogoComponentes.h"
+#include "../FunshiEngineKX/src/Herramientas/IconosGUI/ReglaIconoCatalogo.h"
+#include "../FunshiEngineKX/src/Herramientas/IconosGUI/RutasIconos.h"
+#include "../FunshiEngineKX/src/Objetos/Componentes/CatalogoComponentes.h"
 
 int total = 0;
 int fallos = 0;

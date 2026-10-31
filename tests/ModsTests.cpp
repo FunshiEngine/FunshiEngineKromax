@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineKX - Motor de juegos 3D con OpenGL e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,15 +38,15 @@
 
 #include "TempPruebas.h"
 #include "RutasPluginsMods.h"
-#include "../FunshiEngineC/src/Configuracion/ProjectPaths.h"
-#include "../FunshiEngineC/src/Diagnosticos/RegistroDiagnosticos.h"
-#include "../FunshiEngineC/src/Mods/CargadorMods.h"
-#include "../FunshiEngineC/src/Mods/GestorMods.h"
-#include "../FunshiEngineC/src/Mods/LectorZip.h"
-#include "../FunshiEngineC/src/Mods/ManifiestoMod.h"
-#include "../FunshiEngineC/src/Mods/ModVersion.h"
-#include "../FunshiEngineC/src/Mods/RegistroPanelesMods.h"
-#include "../FunshiEngineC/src/Mods/ServiciosMods.h"
+#include "../FunshiEngineKX/src/Configuracion/ProjectPaths.h"
+#include "../FunshiEngineKX/src/Diagnosticos/RegistroDiagnosticos.h"
+#include "../FunshiEngineKX/src/Mods/CargadorMods.h"
+#include "../FunshiEngineKX/src/Mods/GestorMods.h"
+#include "../FunshiEngineKX/src/Mods/LectorZip.h"
+#include "../FunshiEngineKX/src/Mods/ManifiestoMod.h"
+#include "../FunshiEngineKX/src/Mods/ModVersion.h"
+#include "../FunshiEngineKX/src/Mods/RegistroPanelesMods.h"
+#include "../FunshiEngineKX/src/Mods/ServiciosMods.h"
 
 namespace fs = std::filesystem;
 

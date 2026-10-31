@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
+    FunshiEngineKX - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 
     SPDX-License-Identifier: Apache-2.0
 */
-#include "../FunshiEngineC/src/Terminal/TerminalEmulator.h"
+#include "../FunshiEngineKX/src/Terminal/TerminalEmulator.h"
 
 #include <iostream>
 

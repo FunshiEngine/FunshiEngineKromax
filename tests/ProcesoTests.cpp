@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
+    FunshiEngineKX - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,7 @@
 #include <vector>
 
 #include "TempPruebas.h"
-#include "../FunshiEngineC/src/FileManager/Proceso.h"
+#include "../FunshiEngineKX/src/FileManager/Proceso.h"
 
 namespace fs = std::filesystem;
 

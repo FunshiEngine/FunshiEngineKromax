@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineKX - Motor de juegos 3D con OpenGL e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,12 +32,12 @@
 #include <string>
 #include <vector>
 
-#include "../FunshiEngineC/src/Particulas/LectorPerfil.h"
-#include "../FunshiEngineC/src/Particulas/ParticulasBuilder.h"
-#include "../FunshiEngineC/src/Particulas/ParametrosEmisor.h"
-#include "../FunshiEngineC/src/Particulas/Particula.h"
-#include "../FunshiEngineC/src/Particulas/PerfilParticula.h"
-#include "../FunshiEngineC/src/Particulas/SistemaParticulas.h"
+#include "../FunshiEngineKX/src/Particulas/LectorPerfil.h"
+#include "../FunshiEngineKX/src/Particulas/ParticulasBuilder.h"
+#include "../FunshiEngineKX/src/Particulas/ParametrosEmisor.h"
+#include "../FunshiEngineKX/src/Particulas/Particula.h"
+#include "../FunshiEngineKX/src/Particulas/PerfilParticula.h"
+#include "../FunshiEngineKX/src/Particulas/SistemaParticulas.h"
 #include "TempPruebas.h"
 
 #include <fstream>

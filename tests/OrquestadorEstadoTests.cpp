@@ -1,5 +1,5 @@
 /*
-    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
+    FunshiEngineKX - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,9 +26,9 @@
 
 #include <iostream>
 
-#include "../FunshiEngineC/src/Input/AtajosEditor.h"
-#include "../FunshiEngineC/src/States/ApplicationStateMachine.h"
-#include "../FunshiEngineC/src/States/OrquestadorEstadoGUI.h"
+#include "../FunshiEngineKX/src/Input/AtajosEditor.h"
+#include "../FunshiEngineKX/src/States/ApplicationStateMachine.h"
+#include "../FunshiEngineKX/src/States/OrquestadorEstadoGUI.h"
 
 namespace {
 int total = 0;

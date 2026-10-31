@@ -497,11 +497,12 @@ if(USE_ASSIMP)
     target_link_libraries(funshi_engine PRIVATE assimp::assimp)
 endif()
 
-# GLM: se usa el directorio embebido si existe en el repo; si no (p. ej. en CI
-# sin External/), se busca la copia del sistema (libglm-dev en Ubuntu).
-# Las rutas de include se exponen como un target INTERFACE (funshi_glm) para
-# que los targets que compilan sueltos sin funshi_engine (los tests headless
-# que solo necesitan glm) puedan enlazarlo igual que el motor.
+# GLM (solo headers): se usa el directorio embebido si existe en el repo; si no
+# (p. ej. en CI sin External/), se busca la copia del sistema (libglm-dev en
+# Ubuntu, vcpkg en Windows). Se expone como target INTERFACE para que lo
+# usen tanto el motor como las pruebas que compilan sueltas (que no enlazan
+# funshi_engine): en Windows el include de vcpkg no esta en el path por
+# defecto y sin esto esas pruebas no compilan.
 set(GLM_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/External/glm")
 add_library(funshi_glm INTERFACE)
 if(EXISTS "${GLM_INCLUDE_DIR}/glm/glm.hpp")
@@ -510,7 +511,7 @@ else()
     find_package(glm REQUIRED)
     target_link_libraries(funshi_glm INTERFACE glm::glm)
 endif()
-target_link_libraries(funshi_engine PRIVATE funshi_glm)
+target_link_libraries(funshi_engine PUBLIC funshi_glm)
 
 if(NOT BUILD_RUNTIME)
 # Comandos (sistema undo/redo): se enlaza con funshi_engine que provee todas las

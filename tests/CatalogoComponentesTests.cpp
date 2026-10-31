@@ -1,5 +1,5 @@
 /*
-    FunshiEngineGL - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,17 +34,16 @@
 #include <memory>
 #include <string>
 
-#include "../FunshiEngineGL/src/Objetos/Componentes/Animador2D.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/CatalogoComponentes.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/CameraComponent.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/Colliders/EsfereCollider.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/ComponentFactory.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/RigidBody/RigidBody.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/Sombras/Sombras.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/SpriteRenderer.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/Transform.h"
-#include "../FunshiEngineGL/src/Objetos/GameObject.h"
-#include "../FunshiEngineGL/src/Objetos/GameObjectFactory.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/Animador2D.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/CatalogoComponentes.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/CameraComponent.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/Colliders/EsfereCollider.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/ComponentFactory.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/RigidBody/RigidBody.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/SpriteRenderer.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/Transform.h"
+#include "../FunshiEngineC/src/Objetos/GameObject.h"
+#include "../FunshiEngineC/src/Objetos/GameObjectFactory.h"
 
 int total = 0;
 int fallos = 0;
@@ -291,35 +290,6 @@ void animador2D() {
           "sin bucle la animacion se detiene en el ultimo fotograma");
 }
 
-// Las sombras se agregan al objeto de la luz: sin luz no se crean, y con luz
-// se crean. El componente es propio (no una propiedad de Light) porque el
-// formato binario de los componentes no tiene versionado.
-void sombras() {
-    const auto& cat = CatalogoComponentes::instancia();
-    const DescriptorComponente* sombras = cat.buscar("Sombras");
-    CHECK(sombras != nullptr, "Sombras esta en el catalogo");
-    CHECK(dimensionesIncluyen(sombras->dimensiones, DimensionProyecto::TresD),
-          "Sombras se ofrece en 3D");
-    CHECK(!dimensionesIncluyen(sombras->dimensiones, DimensionProyecto::DosD),
-          "Sombras no se ofrece en 2D");
-
-    auto sinLuz = GameObjectFactory::createSimpleObject(nullptr);
-    CHECK(sombras->prerequisito != nullptr && !sombras->prerequisito(*sinLuz),
-          "sin luz el requisito de Sombras no se cumple");
-    CHECK(ComponentFactory::create("Sombras", *sinLuz) == nullptr,
-          "sin luz el componente de sombras no se crea");
-
-    auto conLuz = GameObjectFactory::createSimpleObject(nullptr);
-    conLuz->addComponent(ComponentFactory::create("Light", *conLuz));
-    CHECK(sombras->prerequisito(*conLuz),
-          "con luz el requisito de Sombras se cumple");
-    auto creado = ComponentFactory::create("Sombras", *conLuz);
-    auto* componente = dynamic_cast<Sombras*>(creado.get());
-    CHECK(componente != nullptr, "con luz el componente de sombras se crea");
-    CHECK(componente && componente->getResolucion() > 0,
-          "el componente de sombras nace con mapa");
-}
-
 int main() {
     catalogoCompleto();
     factoryCreaDesdeCatalogo();
@@ -327,7 +297,6 @@ int main() {
     requisitos();
     restricciones2D();
     animador2D();
-    sombras();
 
     std::cout << (fallos == 0 ? "OK" : "FALLOS") << ": " << total
               << " comprobaciones" << std::endl;

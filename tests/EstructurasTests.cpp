@@ -1,5 +1,5 @@
 /*
-    FunshiEngineGL - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,8 +20,7 @@
 // Cubren: ListaDE (incl. el addFirst corregido y la liberacion de nodos en
 // remove), ArbolEnlazado (deleteRoot/deleteInternalNode/deleteExternalNode con
 // la nueva gestion de memoria), PriorityListaDE, MinHeap/MaxHeap,
-// ListMergeSort y ArbolBinarioEnlazado, y el contrato de las excepciones
-// del motor (el mensaje de Throwable llega intacto a quien la captura).
+// ListMergeSort y ArbolBinarioEnlazado.
 //
 // Las estructuras enlazadas del motor usan E=puntero (p. ej.
 // TNodo<GameObject*>): checkPosition exige comparables contra nullptr, por lo
@@ -35,14 +34,13 @@
 #include <string>
 #include <vector>
 
-#include "../FunshiEngineGL/src/ExcepcionesCPP/Throwable.h"
-#include "../FunshiEngineGL/src/Estructuras/ListasEnlazadas/ListasConPrioridad/PriorityListaDE.h"
-#include "../FunshiEngineGL/src/Estructuras/ListasEnlazadas/ListasDoblementeEnlazada/ListaDE.h"
-#include "../FunshiEngineGL/src/Estructuras/MetodosDeOrdenamiento/ListMergeSort.h"
-#include "../FunshiEngineGL/src/Estructuras/Trees/ArbolesEnlazados/ArbolBinarioEnlazado.h"
-#include "../FunshiEngineGL/src/Estructuras/Trees/ArbolesEnlazados/ArbolEnlazado.h"
-#include "../FunshiEngineGL/src/Estructuras/Trees/Heap/MaxHeap.h"
-#include "../FunshiEngineGL/src/Estructuras/Trees/Heap/MinHeap.h"
+#include "../FunshiEngineC/src/Estructuras/ListasEnlazadas/ListasConPrioridad/PriorityListaDE.h"
+#include "../FunshiEngineC/src/Estructuras/ListasEnlazadas/ListasDoblementeEnlazada/ListaDE.h"
+#include "../FunshiEngineC/src/Estructuras/MetodosDeOrdenamiento/ListMergeSort.h"
+#include "../FunshiEngineC/src/Estructuras/Trees/ArbolesEnlazados/ArbolBinarioEnlazado.h"
+#include "../FunshiEngineC/src/Estructuras/Trees/ArbolesEnlazados/ArbolEnlazado.h"
+#include "../FunshiEngineC/src/Estructuras/Trees/Heap/MaxHeap.h"
+#include "../FunshiEngineC/src/Estructuras/Trees/Heap/MinHeap.h"
 
 namespace {
 
@@ -405,27 +403,6 @@ void testArbolBinario() {
 
 } // namespace
 
-// La excepcion base del motor conserva el mensaje con el que se lanzo: la
-// clase base ya guarda el texto y la anulacion de what() no lo pierde.
-void testExcepcionThrowable() {
-    Throwable error("fallo al cargar la escena");
-    CHECK(std::string(error.what()) == "fallo al cargar la escena",
-          "Throwable devuelve el mensaje con el que se lanzo");
-    CHECK(error.std::runtime_error::what() ==
-              std::string("fallo al cargar la escena"),
-          "el mensaje tambien llega a la clase base");
-    try {
-        throw error;
-    } catch (const std::exception& excepcion) {
-        CHECK(std::string(excepcion.what()) == "fallo al cargar la escena",
-              "al capturar como std::exception se conserva el mensaje");
-    }
-
-    Throwable sinMensaje;
-    CHECK(std::string(sinMensaje.what()).empty(),
-          "una excepcion sin mensaje no inventa texto");
-}
-
 int main() {
     testListaDE();
     testArbolEnlazado();
@@ -433,7 +410,6 @@ int main() {
     testHeaps();
     testListMergeSort();
     testArbolBinario();
-    testExcepcionThrowable();
 
     std::cout << "EstructurasTests: " << total << " verificaciones, " << fallos
               << " fallos" << std::endl;

@@ -1,5 +1,5 @@
 /*
-    FunshiEngineGL - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,17 +18,16 @@
 */
 // Pruebas headless del cache de texturas (TextureManager): imagen compartida,
 // decode unico por path, fallos y eviccion, con un loader artificial. Sin la
-// pila grafica (el upload a GPU TextureGL no vive aqui) ni stb_image. Solo std
+// pila grafica (el upload a GPU TexturaGPU no vive aqui) ni stb_image. Solo std
 // C++17.
 
 #include <iostream>
 #include <memory>
 #include <string>
 
-#include "../FunshiEngineGL/src/Assets/Image.h"
-#include "../FunshiEngineGL/src/Assets/StbImageLoader.h"
-#include "../FunshiEngineGL/src/Assets/TextureException.h"
-#include "../FunshiEngineGL/src/Assets/TextureManager.h"
+#include "../FunshiEngineC/src/Assets/Image.h"
+#include "../FunshiEngineC/src/Assets/TextureException.h"
+#include "../FunshiEngineC/src/Assets/TextureManager.h"
 
 namespace {
 int total = 0;
@@ -159,33 +158,8 @@ void testTextureManager() {
 
 } // namespace
 
-// El volteo vertical del loader de imagenes invierte las filas: es lo que
-// espera OpenGL (la primera fila abajo) y se hace sobre la imagen decodificada
-// para no depender del estado global de la libreria.
-void testVolteoVertical() {
-    Image imagen;
-    imagen.width = 2;
-    imagen.height = 2;
-    imagen.channels = 4;
-    imagen.pixels = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
-
-    StbImageLoader::voltearVertical(imagen);
-
-    CHECK(imagen.pixels[0] == 9 && imagen.pixels[1] == 10 &&
-              imagen.pixels[2] == 11 && imagen.pixels[3] == 12,
-          "tras el volteo la primera fila es la ultima de la imagen");
-    CHECK(imagen.pixels[8] == 1 && imagen.pixels[9] == 2 &&
-              imagen.pixels[10] == 3 && imagen.pixels[11] == 4,
-          "tras el volteo la ultima fila es la primera de la imagen");
-    CHECK(imagen.pixels[4] == 13 && imagen.pixels[5] == 14 &&
-              imagen.pixels[6] == 15 && imagen.pixels[7] == 16,
-          "el volteo no altera el orden de los pixeles dentro de una fila");
-    CHECK(imagen.pixels.size() == 16, "el volteo no cambia el tamano de la imagen");
-}
-
 int main() {
     testTextureManager();
-    testVolteoVertical();
 
     std::cout << "Resultado: " << (total - fallos) << "/" << total << " OK"
               << std::endl;

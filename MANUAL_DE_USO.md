@@ -1,11 +1,11 @@
 <!--
-    FunshiEngineGL - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     SPDX-License-Identifier: Apache-2.0
 -->
 
-# Manual de uso de FunshiEngineGL
+# Manual de uso de FunshiEngineC
 
 Guia practica para usuarios del editor: como montar una escena, asignar assets
 por arrastre y escribir scripts con la API exacta que expone el motor.
@@ -13,7 +13,7 @@ por arrastre y escribir scripts con la API exacta que expone el motor.
 > Documentacion complementaria: [README.md](README.md) (caracteristicas y
 > compilacion), [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) (arquitectura),
 > [CAMARAS_VISTAS_PREVIAS.md](CAMARAS_VISTAS_PREVIAS.md) (camaras) y
-> [FunshiEngineGL/DOCUMENTACION.md](FunshiEngineGL/DOCUMENTACION.md) (notas
+> [FunshiEngineC/DOCUMENTACION.md](FunshiEngineC/DOCUMENTACION.md) (notas
 > internas de arquitectura).
 
 ## Contenido
@@ -36,29 +36,25 @@ por arrastre y escribir scripts con la API exacta que expone el motor.
 16. [Hot reload y depuración](#16-hot-reload-y-depuración)
 
 17. [Terminal integrada](#17-terminal-integrada)
-18. [Mods del editor (.fmod)](#18-mods-del-editor-fmod)
-19. [API de inspeccion de escena](#19-api-de-inspeccion-de-escena)
-20. [Particulas y efectos](#20-particulas-y-efectos)
 
 ---
 
 ## 1. Requisitos e inicio rapido
 
-**Dependencias:** CMake >= 3.16, compilador con C++17, OpenGL 3.3 core (sin GLU),
-GLFW, GLM, Assimp y Bullet. Java es opcional (solo scripting Java): si el build
-encuentra un JDK, se compila el soporte `FUNSHI_JAVA=ON` automaticamente.
+**Dependencias:** CMake >= 3.16, compilador con C++17, GLFW, GLM, Assimp y
+Bullet. Java es opcional (solo scripting Java): si el build encuentra un JDK, se
+compila el soporte `FUNSHI_JAVA=ON` automaticamente.
 
-El **perfil core es obligatorio**: el motor pide un contexto OpenGL 3.3 core
-(GLFW `GLFW_OPENGL_CORE_PROFILE` + `GLFW_OPENGL_FORWARD_COMPAT`) porque todo su
-render es con shaders y no usa estado fijo. Si la GPU no lo soporta, el arranque
-se corta con un mensaje en consola y la ventana no se abre; en ese caso hay que
-actualizar el driver. El requisito real es GLSL 330, que es lo que imponen los
-shaders del engine.
+El motor no depende de ninguna API gráfica: define el contrato de render y lo
+resuelve un backend que se instala en tiempo de ejecución. El que viene en este
+repositorio cumple el contrato y no dibuja, así que el editor abre, se recorre
+la escena y las pasadas de dibujo se omiten. El backend que se instale es el
+que fija la API gráfica y el dialecto de los shaders.
 
 ```bash
-cmake -S FunshiEngineGL -B FunshiEngineGL/build
-cmake --build FunshiEngineGL/build -j$(nproc)
-./FunshiEngineGL/build/FunshiEngineGL
+cmake -S FunshiEngineC -B FunshiEngineC/build
+cmake --build FunshiEngineC/build -j$(nproc)
+./FunshiEngineC/build/FunshiEngineC
 ```
 
 **Primeros pasos:**
@@ -87,41 +83,39 @@ Al crear un proyecto, el motor genera la estructura bajo
 > **Dónde quedan los datos.** `{app}` es la carpeta del ejecutable cuando el
 > motor está en una carpeta donde puede escribir: el build de desarrollo y
 > también la instalación de Windows, que es por usuario
-> (`%LOCALAPPDATA%\Programs\FunshiEngineGL`, sin pedir permisos de
+> (`%LOCALAPPDATA%\Programs\FunshiEngineC`, sin pedir permisos de
 > administrador). Si el motor está en una carpeta donde no puede escribir —una
 > copia en `Program Files`, una carpeta montada en solo lectura, el motor
 > lanzado como administrador—, usa en su lugar
-> `%APPDATA%\FunshiEngineGL\MotorGrafico` (Windows) o
-> `$XDG_DATA_HOME/FunshiEngineGL/MotorGrafico`, con respaldo en
-> `~/.local/share/FunshiEngineGL/MotorGrafico` (Linux y macOS). La ruta
+> `%APPDATA%\FunshiEngineC\MotorGrafico` (Windows) o
+> `$XDG_DATA_HOME/FunshiEngineC/MotorGrafico`, con respaldo en
+> `~/.local/share/FunshiEngineC/MotorGrafico` (Linux y macOS). La ruta
 > efectiva se imprime por consola al arrancar y la migración de la carpeta
 > anterior, si había algo, se avisa en la barra de estado. Los proyectos que
 > migran siguen funcionando: las rutas de assets se guardan relativas al
 > proyecto, no absolutas.
 >
-> El log de arranque (`logs/FunshiEngineGL_<AAAAMMDD_HHMMSS>.log`, ver el árbol)
+> El log de arranque (`logs/FunshiEngineC_<AAAAMMDD_HHMMSS>.log`, ver el árbol)
 > vive también en esa carpeta de datos, de modo que se escribe aunque el motor
 > esté en una carpeta de la que no se pueda escribir. Si esa carpeta tampoco
 > admite escritura, el motor cae a la carpeta temporal del sistema
-> (`%TEMP%\FunshiEngineGL\logs` o `/tmp/FunshiEngineGL/logs`), y solo si las tres
+> (`%TEMP%\FunshiEngineC\logs` o `/tmp/FunshiEngineC/logs`), y solo si las tres
 > opciones fallan se queda sin archivo de log y escribe en la consola.
 
 ```
 MotorGrafico/
 ├── logs/
-│   └── FunshiEngineGL_<AAAAMMDD_HHMMSS>.log   ← log de arranque (UTC), uno por ejecucion
+│   └── FunshiEngineC_<AAAAMMDD_HHMMSS>.log   ← log de arranque (UTC), uno por ejecucion
 ├── Proyects/
 │   └── <proyecto>/
 │       ├── Memory/
 │       │   ├── Binarios/Scene        ← escenas binarias
 │       │   ├── ConfiguracionProyecto.json
 │       │   └── imgui.ini
-│       ├── Mods/                     ← mods del proyecto (.fmod, ver seccion 18)
 │       └── src<proyecto>/            ← assets del proyecto (raiz del explorador)
 │           ├── modelos/              ← .obj/.fbx que arrastra el editor
-│           ├── Sonidos/              ← clips de audio (.wav/.mp3/...)
+│           # ├── Sonidos/              ← clips de audio (.wav/.mp3/...)
 │           └── Scripts/              ← scripts del usuario (.cpp/.java)
-# ├── Mods/                             ← mods globales del motor (.fmod, ver seccion 18)
 ├── Configuraciones/
 │   └── Configuracion.json            ← configuracion global (ultimo proyecto, idioma,
 │                                       sensibilidades y apariencia: tema, B/N, acento,
@@ -140,13 +134,9 @@ MotorGrafico/
         └── JuegoExportado.json       ← metadatos del proyecto
 ```
 
-En el arbol, las carpetas marcadas con `#` las crea el motor (no hace falta
-hacerlas a mano). El motor crea su carpeta global de `Mods/` y, al crear un
-proyecto, `Memory/` y `src<proyecto>/`: las carpetas de assets (`Sonidos/`,
-`Scripts/`, los `Mods/` del proyecto) las crea el usuario, desde el explorador
-de archivos, donde las necesite. Ningun asset depende de una carpeta en
-concreto: el motor guarda la **ruta** del archivo, asi que el archivo puede
-estar en cualquier carpeta dentro de `src<proyecto>/`. El arbol de
+En el arbol, las carpetas marcadas con `#` las crea el motor al crear el proyecto
+(no hace falta hacerlas a mano). La convencion de assets por nombre usa la carpeta
+`src<proyecto>/Sonidos/`, con mayuscula inicial. El arbol de
 archivos del editor lista la **raiz del proyecto** (`src<nombre>`).
 
 > **Nota de packaging:** en el instalador Windows el explorador apunta a la
@@ -165,19 +155,20 @@ el mismo. Eliminar pide confirmacion en un dialogo y
 contenido, y el arbol y el grid se refrescan en el acto. El **undo/redo**
 (`Ctrl+Z` / `Ctrl+Y`) no cubre el borrado de archivos.
 
-**Rutas de la escena.** Las mallas, texturas, fuentes de script y archivos de
-audio que usa la escena se persisten **relativas** a la carpeta
-`src<proyecto>/`. Por eso, al renombrar un proyecto (menu de inicio) o mover su
-carpeta completa, las escenas siguen cargando sin tocar nada: la raiz
-`src<nombre>` se desplaza entera con el proyecto. Dentro del explorador, al
-**renombrar** o al **mover** un archivo o carpeta el motor reescribe al instante
-las referencias de la escena que apuntaban a esa ruta y guarda la escena
-modificada. Limitaciones:
+**Rutas de la escena.** Las mallas, texturas y fuentes de script que usa la
+escena se persisten **relativas** a la carpeta `src<proyecto>/`. Por eso, al
+renombrar un proyecto (menu de inicio) o mover su carpeta completa, las
+escenas siguen cargando sin tocar nada: la raiz `src<nombre>` se desplaza
+entera con el proyecto. Dentro del explorador, al **renombrar** o al **mover**
+un archivo o carpeta el motor reescribe al instante las referencias de la
+escena que apuntaban a esa ruta y guarda la escena modificada. Limitaciones:
 una **copia** (arrastre con `Ctrl`) no se rastrea, porque no cambia ninguna de
 las dos rutas; los cambios hechos **fuera** del motor (explorador de Windows,
 una terminal, un `mv`) solo sirven para refrescar el arbol de archivos, no
 reescriben nada, asi que ahi si hay que volver a arrastrar el asset en su
-inspector.
+inspector; y los sonidos de `src<proyecto>/Sonidos/` se
+referencian por **nombre**: un move con el mismo nombre conserva la referencia
+y un rename la rompe (vuelve a seleccionar el clip en su dropdown).
 Si una referencia quedo apuntando a un archivo que ya no existe, al **abrir la
 escena** el motor busca ese archivo por nombre dentro de la carpeta del
 proyecto: con **una sola coincidencia** repara la referencia, lo anota en el
@@ -258,28 +249,12 @@ seleccion).
   a raíz" solo aparece cuando el objeto cuelga de un padre intermedio: un hijo directo de
   la raíz ya está al nivel superior, así que no hay nada que desenanidar. Clic derecho en
   espacio vacío del panel despliega "New GameObject".
-- **Componentes:** `Transform`, `Color`, `Model`, `Material`, `Materiales`, `Light`,
+- **Componentes:** `Transform`, `Color`, `Model`, `Material`, `Light`,
   `CameraComponent`, `Grid`, `Skybox`, `SpriteRenderer`, `Animador2D`, `Tilemap`,
   colliders (esfera / cubo / malla / tilemap), `RigidBody`, `AudioSource`,
-  `InterfaceComponent`, `UIComponent`, `EmisorParticulas`, `Sombras` y `Script`.
-- **Materiales por region (`Materiales`):** cada parte de la malla (la cara de
-  un cubo, la parte de un personaje) puede llevar su propio material y sus
-  texturas. El panel lista una entrada por region; "Sincronizar con el modelo"
-  agrega las regiones que declara el archivo del modelo, con el nombre del
-  material que trae. Si una region no tiene material propio, se dibuja con el
-  material único del objeto.
-- **Vista previa del material:** el panel de `Material` (y el de cada region de
-  `Materiales`) dibuja una **esfera de muestra** con el material que se esta
-  editando, con luz propia. Se redibuja sola cuando cambia el material (color,
-  brillo o textura), asi que se ve el efecto del cambio sin salir del panel.
-  La esfera usa las texturas del slot difuso; el resto de slots se aplican
-  igual que en la escena.
+  `InterfaceComponent` y `Script`.
 - **Inspector:** boton "Agregar componente" abre el popup de componentes; cada
   uno tiene su panel propio (Transform, Luz con tipo/atenuacion/color, etc.).
-  Cada componente se lista con su icono a la izquierda del nombre; el icono
-  viene del tipo de componente (no se guarda en la escena) y el juego de
-  imagenes completo esta en `Imagenes/GUI-Image/Component-Image/`. Se dibuja
-  a 18 px de lado, para que se lea el detalle de los icones pequenos.
 - **Jerarquia:** arrastra un objeto sobre otro en el arbol para reparentar; el
   motor rechaza ciclos y la raiz. "Childs Freeze" congela la transformacion de
   los hijos durante la edicion del padre.
@@ -471,43 +446,6 @@ que lo tenga, igual que con `Grid`.
   cielo y no como un fondo de pantalla. Aparece tanto en el viewport principal
   como en las vistas previas.
 
-### Sombras (sombra proyectada por una luz)
-
-El componente `Sombras` se agrega **al mismo objeto que lleva la luz** y le dice
-que projecute sombra sobre la escena. El motor dibuja la escena desde el punto
-de vista de la luz, guarda esa profundidad en un mapa y, al dibujar las mallas,
-consulta el mapa para oscurecer lo que queda tapado.
-
-- Solo se ofrece en objetos **3D que ya tienen una luz**; el panel aparece en
-  el Inspector de ese objeto.
-- **Proyecta sombra**: enciende o apaga la sombra de esa luz. Apagada, la luz
-  sigue iluminando igual, solo que sin sombra.
-- **Resolucion**: lado del mapa de sombras en píxeles (de 256 a 4096). Un mapa
-  mas grande da bordes mas nitidos a cambio de mas memoria y mas tiempo de
-  dibujado.
-- **Sesgo**: desplazamiento de la profundidad al comparar. Sin el, la propia
-  superficie que proyecta la sombra se auto-sombrea (el "acne" de las sombras).
-  Si la sombra sale moteada, subilo un poco; si las sombras se despegan de los
-  objetos, bajalo.
-- **Fuerza**: cuanto se oscurece la zona en sombra. 0 deja la sombra sin efecto
-  y 1 la deja completa.
-- **Radio**: semi-lado del frustum ortografico de la luz. La sombra abarca una
-  caja de lado `2 * radio` alrededor del foco: un radio grande cubre mas
-  escena, con menos resolucion efectiva.
-- **Distancia**: alcance de la sombra, en unidades desde la luz.
-
-Dos limites del motor:
-
-- Solo proyectan sombra las luces **direccionales** y **spot**. Las puntuales
-  proyectan en todas las direcciones, asi que necesitarian un mapa por cara; el
-  motor las cuenta aparte y avisa por consola de que no proyectan.
-- Como mucho **4 mapas de sombra** a la vez. Si hay mas luces con sombra, las
-  que se quedan fuera se avisan por consola (las primeras 4 son las que
-  proyectan).
-
-La sombra es de la luz que la lleva: si hay dos luces en la escena, cada una
-sombrea solo lo que ilumina ella.
-
 ## 5. Undo / redo de operaciones del editor
 
 Todas las operaciones del editor estan encapsuladas en comandos (patron
@@ -524,8 +462,6 @@ entradas; cada nueva accion invalida la pila de redo.
 | Modificar transform (posicion/rotacion/escala) | `TransformComando` |
 | Agregar componente | `AgregarComponenteComando` |
 | Quitar componente | `QuitarComponenteComando` |
-| Ajustar una variable de un componente | `AjustarVariableComando` |
-| Cambiar la etiqueta (tag) de un objeto | `EstablecerTagComando` |
 | Limpiar escena (borrar todos los objetos no-raiz) | `LimpiarEscenaComando` |
 
 **Atributos de los comandos:** cada comando captura el estado antes de mutar
@@ -597,8 +533,7 @@ El explorador de archivos (arbol + grid) emite el payload ImGui
 |---|---|---|
 | Panel **Model** del Inspector | `Model` | path completo (buffer 4096) |
 | Panel **Script** del Inspector | `Script` | path completo del fuente (`std::string`) |
-| Panel **Fuente de audio** del Inspector | `AudioSource` | ruta del archivo de audio |
-| Panel **Musica** del Inspector | `Musica` | ruta de la pista (se anade a la lista) |
+| Dropdown **Sonido** de AudioSource | `AudioSource` | nombre del clip |
 | Campo **Interfaz** de InterfaceComponent | `InterfaceComponent` | ruta del `.html` (no la asigna si no es `.html`) |
 | Panel **Tilemap** del Inspector | `Tilemap` | ruta del tileset JSON (no lo asigna si no valida) |
 | Panel **Prefab** del Inspector | `Prefab` | instancia el prefab completo (jerarquía + componentes) |
@@ -613,9 +548,8 @@ menos 4096 bytes, de modo que paths largos no se truncan (el componente
    "New File"); el FileSystemWatcher rescanea al detectar cambios externos.
 2. Selecciona el objeto y arrastra el asset sobre el control correspondiente
    del panel del componente ("Arrastra modelo", campo Fuente del script,
-   boton de la fuente de audio, zona de pistas de Musica, dropdown de
-   Interfaz).
-3. La escena guarda el path; al recargar se resuelve de nuevo.
+   dropdown de Sonido, dropdown de Interfaz).
+3. La escena guarda el path o nombre; al recargar se resuelve de nuevo.
 
 **Instanciar prefab por drag & drop (nuevo):**
 1. En el explorador, localiza un archivo `.prefab` en `Assets/Prefabs/`.
@@ -644,47 +578,6 @@ menos 4096 bytes, de modo que paths largos no se truncan (el componente
  7. Para colisión física: **Add Component → TilemapCollider** (requiere Tilemap
     en el mismo objeto) → en su panel click **Recargar colisión** (reconstruye
     las cajas desde los tiles sólidos actuales).
-
-### 6.3 Traer archivos del sistema operativo
-
-El explorador del editor tambien acepta archivos y carpetas que vienen de
-**fuera** del proyecto: del explorador de archivos del sistema o del
-portapapeles del sistema.
-
-| Como | Donde cae |
-|---|---|
-| **Arrastrar** archivos desde el explorador del sistema sobre la ventana del editor | Se copian en la carpeta que se esta viendo en **Vista de contenido** |
-| **Ctrl+V** con la ventana **Vista de contenido** enfocada | Se copian en la carpeta que se esta viendo |
-
-Detalles que conviene saber:
-
-- **El destino es la carpeta visible**, la que aparece en la barra superior de
-  la ventana. Si no hay ninguna carpeta visible, el arrastre se ignora.
-- **No se pisa nada.** Si en la carpeta destino ya existe un archivo con ese
-  nombre, el nuevo recibe un nombre libre: `notas.txt`, `notas (1).txt`,
-  `notas (2).txt`... El archivo que ya estaba conserva su contenido. Es la
-  misma politica que aplica el explorador del sistema.
-- **Las carpetas se copian enteras**, con todo su contenido.
-- **El resultado se avisa en la barra de estado** (ventana *Estado*), tanto si
-  la importacion funciono como si algun elemento no se pudo copiar. Un
-  elemento que falla no impide que se copien los demas.
-- Importar no cambia ninguna ruta de la escena (no hay ningun asset que se
-  mueva de sitio), asi que la escena no se reescribe ni se guarda sola.
-- Copiar una **carpeta** hace que el arbol de carpetas de la izquierda se
-  actualice; copiar solo archivos no lo necesita, porque los archivos no
-  aparecen en el arbol.
-
-**Limitaciones por plataforma:**
-
-- En **Windows** el portapapeles de archivos es una lista de rutas del shell:
-  `Ctrl+V` funciona con lo que se haya copiado o cortado en el explorador de
-  archivos.
-- En **Linux** el portapapeles de archivos es texto (`text/uri-list`). Depende
-  de que el explorador del sistema lo deje disponible: si no hay nada, el
-  motor avisa "El portapapeles del sistema no tiene archivos" en vez de fallar.
-  Arrastrar archivos sobre la ventana si funciona en cualquier escritorio.
-- En una maquina **sin escritorio** (un servidor) no hay portapapeles: el motor
-  lo dice y sigue funcionando con normalidad.
 
 ---
 
@@ -716,48 +609,17 @@ Detalles que conviene saber:
 
 ## 8. Audio
 
-- Los archivos de audio se referencian **por ruta**: no hay catálogo ni carpeta
-  reservada. El archivo puede estar en cualquier carpeta dentro de
-  `src<proyecto>/` (wav/ogg/mp3/flac).
-- Agrega `AudioSource` a un objeto y **arrastra el archivo de audio** desde el
-  explorador de archivos al panel del componente, igual que se hace con los
-  scripts. El panel muestra la ruta asignada; si el archivo arrastrado no es
-  un formato de audio, el motor lo dice en el log y no lo asigna.
-- Ajusta volumen, loop y "reproduccion automatica". En Depuración y Juego, el
-  `AudioEngine` reproduce el archivo en su hilo de audio.
-- La ruta se guarda en la escena **relativa** a `src<proyecto>/`: al mover o
-  renombrar el proyecto entero, la escena sigue funcionando. En el juego
-  exportado se resuelve contra la carpeta del juego (allí se copia todo
-  `src<proyecto>/`).
-- Si el archivo no existe, el motor avisa en el log y no reproduce: el
-  componente queda sin sonido.
-
-### 8.1 Musica: lista de pistas
-
-- Agrega `Musica` a un objeto y **arrastra los archivos de musica** al panel:
-  cada uno se anade a la **lista ordenada** de pistas del componente. El
-  archivo puede estar en cualquier carpeta dentro de `src<proyecto>/`, igual
-  que los efectos de sonido.
-- El orden de la lista es el orden en que suenan: `^` y `v` mueven una pista y
-  `x` la quita.
-- Ajusta **Volumen**, **Fundido (s)** (cuanto dura el cruce entre dos pistas),
-  **Repetir la lista** (al terminar la ultima vuelve a la primera) y
-  **Reproducir al activar**.
-- En Depuracion y Juego el motor reproduce la primera pista y, cuando se
-  acaba, pasa a la siguiente con un fundido cruzado. El boton **Reproducir**
-  del inspector arranca la lista en cualquier momento; **Detener** la para con
-  el mismo fundido.
-- La lista se guarda en la escena **relativa** a `src<proyecto>/`, como la ruta
-  del `AudioSource`: al mover o renombrar el proyecto entero sigue funcionando,
-  y en el juego exportado se resuelve contra la carpeta del juego.
+- Crea la carpeta `Sonidos/` (si no existe) y coloca los clips en `Sonidos/` (wav/mp3/etc.). `AudioClipsManager` los
+  descubre y los registra **por nombre** en el `AudioEngine` al escanear.
+- Agrega `AudioSource` a un objeto; en su panel elige el clip del dropdown
+  (o arrastralo desde `Sonidos/` tras crearla), ajusta volumen, loop y
+  "reproduccion automatica". En Depuración y Juego, el AudioEngine reproduce
+  en su hilo de audio.
+- Cambiar de proyecto re-escanea y limpia el registro de clips.
 
 ---
 
 ## 9. Interfaces de juego (HUD)
-
-Esta seccion describe la interfaz **web** (una pagina `.html` dentro del
-juego). La interfaz **nativa**, que dibuja el motor sin navegador de por medio,
-esta en la seccion 21.
 
 - Agrega `InterfaceComponent` a un GameObject y arrastra un archivo `.html` al
   campo del inspector. El `.html` referencia su CSS y su JS por rutas relativas,
@@ -791,7 +653,7 @@ esta en la seccion 21.
 
 ## 10. Cámaras
 
-- `CameraComponent` con **vistas previas en vivo** (render a FBO); detalle
+- `CameraComponent` con **vistas previas en vivo** (render a render target); detalle
   completo en [CAMARAS_VISTAS_PREVIAS.md](CAMARAS_VISTAS_PREVIAS.md).
 - "Usar" en el panel de la camara la marca como activa; el id se persiste en la
   configuracion del proyecto (`ConfiguracionProyecto.json`), con default
@@ -820,14 +682,13 @@ estructura la jerarquia y se serializa (id 0).
 ### 10.1 Exportar juego (distribucion standalone)
 
 Menu **Archivo > Exportar juego** (barra superior del editor). Abre un dialogo
-modal para configurar la exportacion. El dialogo muestra de que proyecto se
-exporta (el proyecto activo en ese momento):
+modal para configurar la exportacion:
 
 | Campo | Descripcion |
 |---|---|
 | **Nombre del ejecutable** | Nombre del binario final (sin extension). |
 | **Nombre del proyecto exportado** | Nombre de la carpeta bajo `MotorGrafico/Exportaciones/`. |
-| **Plataforma objetivo** | La que admita la maquina: en Windows, **Windows (nativo)** (sale un `.exe` con sus DLL al lado); en Linux, **Linux (nativo)** o **Windows (cross-compile MinGW)** (si esta instalado el toolchain cruzado). |
+| **Plataforma objetivo** | Linux (nativo) o Windows (cross-compile MinGW). |
 
 Al pulsar **Exportar**, el motor:
 
@@ -851,12 +712,6 @@ Al pulsar **Exportar**, el motor:
    - `lib/` con las `.so` de sistema en Linux; en Windows las DLL quedan
      junto al `.exe`.
    - `JuegoExportado.json` (metadatos del proyecto).
-
-> El juego exportado **lleva consigo las DLL de las que depende**: el
-> exportador las lee de la tabla de importaciones del binario (y de las que
-> importan esas a su vez) y las copia desde la carpeta del toolchain (el
-> runtime de C++ y las bibliotecas con las que enlaza el motor). Asi el juego
-> arranca en otra maquina sin instalar nada.
    
    **NO se incluyen** archivos del editor:
    `ConfiguracionProyecto.json`, `imgui.ini` ni la estructura
@@ -866,34 +721,6 @@ El dialogo muestra un **spinner indeterminado** (barra de progreso falsa) mientr
 se ejecuta la compilacion; el proceso no bloquea el editor. Mientras la
 exportacion corre el dialogo **no se puede cerrar** (ni con la X ni con Cerrar);
 al terminar queda abierto mostrando el resultado hasta que el usuario lo cierre.
-
-**Que se ve en cada momento:**
-
-- **Configuracion**: el formulario y, si el intento anterior no llego a
-  exportarse, el motivo en rojo (por ejemplo, que no hay proyecto o que su
-  carpeta no existe).
-- **Exportando**: el spinner, la barra de progreso, la etapa en curso
-  (compilando, empaquetando...) y la ultima linea de la bitacora.
-- **Resultado**: el mensaje final de la exportacion (la carpeta donde quedo
-  empaquetada, o el motivo del fallo), con los botones **Cerrar** y **Exportar
-  otra vez** (este ultimo vuelve al formulario con la misma configuracion).
-
-> Si el dialogo muestra «Proyecto: (ninguno)» no hay ningun proyecto activo
-> desde el que exportar: elige o abre un proyecto antes de exportar.
-
-**Traza de la exportacion:** cada exportacion deja su propio archivo de log
-en la carpeta `logs/` del motor (`MotorGrafico/logs/Exportacion_<AAAAMMDD_HHMMSS>.log`,
-timestamp en UTC). Ahi queda **todo lo que se imprimio en la terminal durante
-la compilacion** (el configure de CMake, el progreso de la compilacion, los
-avisos del compilador y del enlazador) junto con la bitacora de la
-exportacion. El mensaje final del dialogo dice la ruta exacta del archivo, y
-las etapas se agregan al final unas de otras (el configure no borra lo que
-escribio la compilacion). Es el sitio donde mirar cuando la exportacion falla
-o cuando el compilador avisa de algo.
-
-> La compilacion ocurre en un directorio propio, en la carpeta temporal del
-> sistema: dos exportaciones simultaneas no se pisan (cada una compila en el
-> suyo) y ahi no quedan restos de las exportaciones fallidas.
 
 > Los scripts C++ del proyecto viajan como fuentes y se compilan en la
 > **primera ejecucion** del juego en la maquina que lo corre: hace falta un
@@ -1036,7 +863,7 @@ ejecuta durante Depuración y Juego.
 - La ventana **Estado** muestra el toolchain (compilador C++, javac, libjvm,
   cache) y el resultado de compilacion/carga de cada script de la escena.
 - Los errores de carga/compilacion se informan en la ventana **Estado** y en el
-  log del motor (`logs/FunshiEngineGL_*.log` en la carpeta de datos, seccion 2);
+  log del motor (`logs/FunshiEngineC_*.log` en la carpeta de datos, seccion 2);
   el panel del componente no los repite: queda con el fuente asignado y sus
   SerializeField.
 
@@ -1098,7 +925,7 @@ Declaralos entre `REFLECT_INICIO(<Clase>)` y `REFLECT_FIN` (pueden ir en zona
 |---|---|---|
 | `REFLECT_CAMPO(nombre)` | `int`, `float`, `double`, `bool`, `std::string`, `vec3` | `int vidas = 3;` |
 | `REFLECT_CAMPO(objetivo)` | `GameObject*` | referencia asignable arrastrando un objeto desde la jerarquia |
-| `REFLECT_COMPONENTE(hud, "InterfaceComponent")` | `T*` de un componente | referencia a un componente de otro objeto; se asigna arrastrando el componente desde su inspector. El tipo se escribe como texto (`"InterfaceComponent"` para la interfaz web o `"UIComponent"` para la nativa) |
+| `REFLECT_COMPONENTE(hud, "InterfaceComponent")` | `T*` de un componente | referencia a un componente de otro objeto; se asigna arrastrando el componente desde su inspector. El tipo se escribe como texto |
 | `REFLECT_ARRAY(puntos)` | `std::vector<T>` de primitivas / `vec3` / `std::vector<GameObject*>` | `std::vector<float> ratios;` |
 | `REFLECT_GRUPO(misil)` | struct anidado con su propio bloque `REFLECT_*` | `Misil misil;` |
 | `REFLECT_GRUPOS(oleadas)` | `std::vector<S>` de structs reflejados | `std::vector<Oleada> oleadas;` |
@@ -1253,7 +1080,7 @@ void onUpdate(GameObject* owner, float deltaTime) override {
 }
 ```
 
-### 13.4 Servicios de escena: tabla `servicios` (v9)
+### 13.4 Servicios de escena: tabla `servicios` (v4)
 
 Ademas de `api`, `IScriptBehaviour` expone `this->servicios`: acceso a los
 servicios del motor que **no son del objeto** sino de la escena (audio,
@@ -1267,7 +1094,7 @@ Misma convencion APPEND-ONLY con `servicios->version` al final.
 
 | Funcion | Firma | Descripcion |
 |---|---|---|
-| `servicios->reproducirSonido(ruta, vol, loop)` | `int (const char*, float, bool)` | reproduce el archivo de audio de la **ruta** (relativa a `src<proyecto>/` o absoluta); devuelve handle >= 0, o -1 si el archivo no existe |
+| `servicios->reproducirSonido(clip, vol, loop)` | `int (const char*, float, bool)` | reproduce un clip de `Sonidos/` (la carpeta debe existir) por **nombre**; devuelve handle >= 0, o -1 si el clip no existe |
 | `servicios->detenerSonido(handle)` | `void (int)` | detiene la reproduccion del handle |
 | `servicios->objetoPorNombre("Enemigo")` | `void* (const char*)` | busca un GameObject por nombre en la escena; `nullptr` si no existe. El puntero vale mientras el objeto viva |
 | `servicios->objetoPorId(7)` (v3) | `void* (int)` | busca un GameObject por id de escena; `nullptr` si no existe |
@@ -1293,15 +1120,6 @@ Misma convencion APPEND-ONLY con `servicios->version` al final.
 | `servicios->interfazEstablecerEstado(iface,json)` (v6) | `bool (void*, const char*)` | reemplaza el arbol de estado que el motor entrega a la interfaz; `false` si el texto no es un objeto JSON valido |
 | `servicios->interfazEstablecerValor(iface,ruta,valorJson)` (v6) | `bool (void*, const char*, const char*)` | fija un valor en la ruta (JSON Pointer, p. ej. `"/jugador/vida"`; se acepta sin la barra inicial), creando los objetos intermedios; `valorJson` es un literal JSON de cualquier tipo |
 | `servicios->interfazValor(iface,ruta)` (v6) | `const char* (void*, const char*)` | valor que la interfaz devolvio al motor en esa ruta, como texto JSON, o `nullptr` si no existe |
-| `servicios->reproducirMusica(ruta,vol,fundido)` (v8) | `bool (const char*, float, float)` | reproduce una pista de musica por **ruta** (relativa a `src<proyecto>/` o absoluta); `false` si el archivo no existe. Si la pista no esta en la lista del componente `Musica`, suena sola |
-| `servicios->detenerMusica(fundido)` (v8) | `void (float)` | detiene la musica (con fundido de salida opcional) |
-| `servicios->volumenMusica(vol)` (v8) | `void (float)` | volumen del bus de musica (todas las pistas juntas, de 0 a 1) |
-| `servicios->interfazNativaDeObjeto(nombre)` (v9) | `void* (const char*)` | handle de la interfaz **nativa** (HUD que dibuja el motor) del objeto con ese nombre, o `nullptr` si no existe o no tiene `UIComponent`. El handle es opaco: identifica el componente |
-| `servicios->interfazNativaVisible(iface)` (v9) | `bool (const void*)` | si la interfaz nativa esta activa (visible) |
-| `servicios->interfazNativaEstablecerVisible(iface,visible)` (v9) | `void (void*, bool)` | muestra u oculta la interfaz nativa |
-| `servicios->interfazNativaEstablecerTexto(iface,id,texto)` (v9) | `bool (void*, const char*, const char*)` | cambia el texto del widget con ese identificador; `false` si no hay ningun widget con ese identificador |
-| `servicios->interfazNativaEstablecerVisibleWidget(iface,id,visible)` (v9) | `bool (void*, const char*, bool)` | muestra u oculta un widget; `false` si no hay ningun widget con ese identificador |
-| `servicios->interfazNativaBotonPulsado(iface,id)` (v9) | `bool (void*, const char*)` | si ese boton recibio el clic en el frame actual (flanco de pulsacion) |
 
 Los deltas del mouse se acumulan durante el frame y se reinician al avanzar al
 siguiente. Se capturan en Juego y cuando el cursor esta bloqueado durante
@@ -1330,7 +1148,7 @@ void onUpdate(GameObject* owner, float deltaTime) override {
 
     // Efecto de sonido al disparar (una sola vez por pulsacion):
     if (servicios->teclaPresionada("SPACE"))
-        servicios->reproducirSonido("sonidos/disparo.wav", 0.8f, false);
+        servicios->reproducirSonido("disparo.wav", 0.8f, false);
 
     // Alcanzar otro objeto por nombre (o usar el campo GameObject*
     // expuesto en el inspector, que es lo recomendado):
@@ -1443,7 +1261,7 @@ la JVM (`motivo:`), la carpeta de caché, dónde se buscaron las clases y con qu
 `javac` y `libjvm`. Con eso se distingue de un vistazo entre "el `.java` no
 compiló", "la clase no existe" y "el `.class` es de otra versión de Java".
 
-El instalador de Windows (`FunshiEngineGL_setup.iss`) comprueba si hay un JDK
+El instalador de Windows (`FunshiEngineC_setup.iss`) comprueba si hay un JDK
 antes de instalar —exige `bin\server\jvm.dll` **y** `bin\javac.exe`, los dos, que
 es lo mismo que necesita el motor— y, si no lo encuentra, ofrece descargar e
 instalar Temurin JDK 17. El paquete de Linux (Qt IFW) no puede encadenar
@@ -1486,14 +1304,12 @@ Las posiciones consultadas o fijadas por `Nativo.posicionX/Y/Z` y
 | Tags y colliders | `Nativo.etiqueta`, `tieneEtiqueta`, `objetoDeCollider` |
 | Contactos | `colisionInicio`, `colisionPersistencia`, `colisionFin` |
 | Consola | `Nativo.imprimir` |
-| Audio de script | `Nativo.reproducirSonido(ruta, volumen, bucle)`, `Nativo.detenerSonido(handle)` |
-| Musica | `Nativo.reproducirMusica(ruta, volumen, fundido)`, `Nativo.detenerMusica(fundido)`, `Nativo.volumenMusica(volumen)` |
+| Audio de script | `Nativo.reproducirSonido(clip, volumen, bucle)`, `Nativo.detenerSonido(handle)` |
 | Busqueda de objetos | `Nativo.objetoPorNombre(nombre)`, `Nativo.objetoPorId(id)`, `Nativo.objetoPorEtiqueta(etiqueta)`; devuelven `0` si no existe |
 | Gravedad global | `Nativo.fijarGravedadGlobal(x, y, z)`, `Nativo.gravedadGlobalX/Y/Z` |
 | Gestion de objetos | `Nativo.crearObjeto(nombre, padre)`, `Nativo.destruirObjeto(objeto)`, `Nativo.clonarObjeto(original, padre)`, `Nativo.agregarColliderEsfera/cubo(objeto, radio)`, `Nativo.agregarRigidBody(objeto, masa)` |
 | Prefabs | `Nativo.instanciarPrefab(nombre, padre)`, `Nativo.listarPrefabs()` (devuelve `String[]`) |
 | Interfaces web (HUD) | `Nativo.interfazDeObjeto(nombre)` (handle opaco, `0` si no existe), `Nativo.interfazActiva(iface)`, `Nativo.interfazEstablecerActiva(iface, activa)`, `Nativo.interfazEstablecerEstado(iface, json)`, `Nativo.interfazEstablecerValor(iface, ruta, valorJson)`, `Nativo.interfazValor(iface, ruta)` (texto JSON o `null`) |
-| Interfaz nativa (HUD del motor) | `Nativo.interfazNativaDeObjeto(nombre)` (handle opaco, `0` si no existe), `Nativo.interfazNativaVisible(iface)`, `Nativo.interfazNativaEstablecerVisible(iface, visible)`, `Nativo.interfazNativaEstablecerTexto(iface, id, texto)`, `Nativo.interfazNativaEstablecerVisibleWidget(iface, id, visible)`, `Nativo.interfazNativaBotonPulsado(iface, id)` (`true` si ese boton se pulso en este frame) |
 | Teclado | `Nativo.teclaSostiene`, `teclaPresionada`, `teclaSoltada` |
 | Mouse | `Nativo.deltaMouseX`, `Nativo.deltaMouseY` (pixeles por frame) |
 
@@ -1511,7 +1327,7 @@ ejecutar `detener`.
 @Override
 public void actualizar(long objeto, double deltaTime) {
     if (Nativo.teclaPresionada("SPACE")) {
-        int sonido = Nativo.reproducirSonido("sonidos/disparo.wav", 0.8f, false);
+        int sonido = Nativo.reproducirSonido("disparo.wav", 0.8f, false);
         Nativo.detenerSonido(sonido);
     }
     long meta = Nativo.objetoPorNombre("Meta");
@@ -1596,539 +1412,5 @@ de estado y posicion del cursor. La emulacion cubre secuencias VT de uso comun;
 no implementa extensiones como colores true-color/256, raton, portapapeles ni
 todas las convenciones de cada emulador. Algunas aplicaciones TUI pueden
 requerir funciones que el panel todavia no ofrece.
-
----
-
-## 18. Mods del editor (.fmod)
-
-Un **mod** es un paquete que extiende el editor: agrega paneles y herramientas
-que el motor no trae de fábrica. Los mods se aplican **solo al editor**; los
-juegos exportados no llevan mods.
-
-### 18.1 Carpetas de mods
-
-El motor lee dos carpetas y las dos son opcionales:
-
-- `<raizDeDatos>/Mods/` — mods **globales**, disponibles para cualquier
-  proyecto. La carpeta se crea al arrancar el editor.
-- `<proyecto>/Mods/` — mods del **proyecto activo**; se leen solo mientras ese
-  proyecto está abierto. La carpeta se crea al crear el proyecto.
-
-Ambas se recorren al arrancar el editor. El resultado se reporta en el panel de
-estado/log: un resumen por ámbito (`mods de motor encontrados: N` y `mods de
-proyecto encontrados: M`, cada uno solo si hay al menos uno) y, por cada paquete
-rechazado, el nombre del mod y la causa.
-
-Después, los paquetes válidos se **cargan**: su binario se extrae a la caché
-(`<raizDeDatos>/cache/mods/<id del mod>/`) y se abre, y el mod recibe su
-inicialización. La carga se reporta aparte, porque un paquete puede ser válido
-y su binario no: `mods nativos cargados: N` dice cuántos quedaron en memoria, y
-cada mod que no se pudo cargar aparece con su causa (`mod no cargado: ...`).
-Al salir del editor los mods se apagan en orden inverso al de carga y sus
-binarios se cierran.
-
-### 18.2 Instalación
-
-La instalación es **manual**: copia o arrastra el archivo `.fmod` a la carpeta
-de mods que corresponda. No hay descarga desde red desde el motor.
-
-### 18.3 Formato del paquete
-
-Un `.fmod` es un archivo **ZIP** con extensión propia (se puede abrir con
-cualquier herramienta ZIP). El nombre del archivo es libre; la única fuente de
-verdad es el manifiesto. El paquete contiene:
-
-```
-autor.mimod_1.0.0.fmod
-├── ManifiestoMod.json       ← obligatorio, en la raíz del ZIP
-├── icono.png                ← opcional
-└── bin/                     ← el binario del mod (.dll en Windows, .so en Linux)
-```
-
-La extracción rechaza rutas que escapen de la carpeta destino (`..` o rutas
-absolutas): un paquete no puede escribir fuera de su caché.
-
-### 18.4 Manifiesto
-
-`ManifiestoMod.json` declara la identidad del mod y con qué puede convivir:
-
-```json
-{
-  "esquemaVersion": 1,
-  "id": "Autor.Nombre",
-  "nombre": "Nombre visible",
-  "descripcion": "Qué hace el mod",
-  "autor": "Autor",
-  "version": "1.0.0",
-  "licencia": "MIT",
-  "icono": "icono.png",
-  "tipo": "nativo",
-  "versionMotor": ">=1.0.0 <2.0.0",
-  "puntoEntrada": "bin/mod.dll",
-  "dependencias": [
-    { "id": "Autor.Otro", "versionMin": "1.2.0", "requerida": true, "orden": "antes" }
-  ],
-  "conflictos": ["Autor.Incompatible"]
-}
-```
-
-- `id` es estable, con formato `Autor.Nombre`. Un mismo `id` **dos veces** (en
-  la misma carpeta o entre la global y la del proyecto) es error: se rechazan
-  todas las instancias con ese id.
-- `version` y `versionMin` usan `X.Y.Z`. `versionMotor` es un rango contra la
-  versión del motor (`>=1.0.0 <2.0.0`), para no cargar binarios incompatibles.
-- `tipo` solo admite `"nativo"` en v1. `"contenido"` está reservado para el
-  futuro.
-- `orden` de una dependencia es `antes`, `despues` o `ninguno`: los mods se
-  carga en orden topológico y un ciclo entre dependencias se rechaza.
-- `icono`, `dependencias` y `conflictos` son opcionales.
-- `puntoEntrada` es la ruta del binario **dentro del paquete**. Es una sola
-  cadena: el paquete lleva un binario por plataforma, así que un `.fmod` se
-  arma para el sistema al que se instala.
-
-### 18.5 La API del mod
-
-Un mod nativo es una biblioteca compartida (`.dll` en Windows, `.so` en Linux)
-que exporta una función de entrada:
-
-```cpp
-extern "C" FUNSHI_MOD_EXPORT int funshi_mod_api(FunshiMods::IMod** salida);
-```
-
-Devuelve la versión de la API con la que se compiló, o `0` si no puede
-trabajar con el motor; el motor rechaza los que declaran una versión de API
-posterior a la que ofrece. La interfaz del mod es una tabla de punteros a
-función (`init`, `update`, `dibujar`, `shutdown`, `nombre`, `versionStr`), todas
-opcionales. El motor no expone objetos: le pasa una tabla de servicios y, en
-cada dibujo, un contexto con el contexto de ImGui y el tamaño del área. El mod
-que dibuja hace `ImGui::SetCurrentContext(ctxImgui)` antes de pintar.
-
-La tabla de servicios es *append-only*: los campos nuevos van al final. La
-única diferencia con las tablas de API de scripts es que **la versión va al
-principio**, para que un mod compilado contra una versión anterior lea siempre
-su versión en el mismo offset. Los servicios que ofrece son:
-
-| Servicio | Qué hace |
-|---|---|
-| `version` | Versión de la API de mods que ofrece el motor (primero, offset fijo). |
-| `registrarPanel(id, titulo, dibujar, datos)` | Registra un panel de GUI del mod. Devuelve si se registró. |
-| `contarObjetos()` | Objetos que hay en la escena abierta. |
-| `obtenerObjeto(indice, salida)` | Datos de un objeto (nombre, id, si tiene collider, cuántos componentes tiene). |
-| `contarComponentes(indiceObjeto)` | Componentes que tiene un objeto de la escena. |
-| `obtenerComponente(indiceObjeto, indiceComponente, salida)` | Datos de un componente (su tipo). |
-| `nombreProyecto()` | Nombre del proyecto abierto (cadena vacía si no hay ninguno). |
-| `contextoImGui()` | Contexto de ImGui del motor, opaco: el mod lo pasa a `ImGui::SetCurrentContext()` para dibujar con él. |
-
-### 18.6 Paneles de los mods
-
-Un mod puede abrir sus propias ventanas dentro del editor. Se registran con
-`registrarPanel()` desde `init()` (o desde `update()`, en caliente): cada panel
-recibe un identificador (único dentro del mod), un título visible y el callback
-que dibuja su contenido.
-
-El motor abre la ventana del panel, le entrega el contexto de dibujo (el
-contexto de ImGui, el tamaño del área disponible y el delta del frame) y guarda
-el estado abierto/cerrado junto al resto de ventanas del editor. Por eso las
-ventanas de los mods aparecen también en el menú **Ventanas** de la barra
-principal, con su casilla, y su estado se guarda con el proyecto.
-
-Un mod que implementa `dibujar()` no necesita registrar nada: el motor le abre
-una ventana propia, titulada con el nombre visible del mod, y llama a
-`dibujar()` dentro en cada frame.
-
-Cuando el mod se descarga, sus paneles se retiran: el editor nunca dibuja una
-ventana cuyo binario ya está cerrado.
-
-### 18.7 Cómo se crea un mod
-
-Un mod es un **proyecto aparte**: no se compila con el motor ni entra en su
-repositorio ni en el instalador. Se compila por separado y su resultado es un
-`.fmod` que se copia a la carpeta de mods del motor.
-
-**1. El proyecto.** El mod usa solo la API pública del motor
-(`src/Mods/ApiMod.h`, una cabecera con tablas POD) y **su propia copia de
-ImGui**: no puede enlazar contra el motor (es un ejecutable, no una biblioteca)
-y el contexto de ImGui que usa es el del motor, que se le entrega opaco. Por
-eso tiene que compilar **las mismas fuentes de ImGui que usa el motor**, para
-que las estructuras del contexto coincidan en memoria; si el motor actualiza
-ImGui, el mod se recompila.
-
-**2. El código.** El binario exporta un único símbolo, con la interfaz del mod
-en una tabla de punteros a función:
-
-```cpp
-extern "C" FUNSHI_MOD_EXPORT int funshi_mod_api(FunshiMods::IMod** salida);
-```
-
-Devuelve la versión de la API con la que se compiló (`0` si no puede trabajar
-con ese motor). La interfaz tiene `init`, `update`, `dibujar`, `shutdown`,
-`nombre` y `versionStr`, todas opcionales. Desde `init()` el mod registra sus
-paneles con `registrarPanel()` y los dibuja con widgets de ImGui, después de
-fijar el contexto que le entrega el motor:
-
-```cpp
-ImGui::SetCurrentContext(static_cast<ImGuiContext*>(contexto->ctxImgui));
-```
-
-**3. El manifiesto.** El paquete lleva un `ManifiestoMod.json` en la raíz con
-los campos del § 18.4. El campo `puntoEntrada` es la ruta del binario **dentro
-del paquete** (por ejemplo `bin/MiPrimerMod.dll`), con `/` como separador.
-
-**4. El empaquetado.** El `.fmod` es un ZIP (se puede inspeccionar con
-cualquier herramienta ZIP) con esta estructura:
-
-```
-MiPrimerMod.fmod
-├── ManifiestoMod.json
-└── bin/
-    └── MiPrimerMod.dll
-```
-
-**5. La instalación.** Copiar el `.fmod` a la carpeta de mods del motor (junto
-al ejecutable) y reiniciar el editor: los mods se cargan al arrancar.
-
-Un `.fmod` es para un sistema: el paquete lleva un binario por plataforma, así
-que hay que compilarlo en la plataforma destino.
-
-### 18.8 Confianza
-
-Los mods se cargan con **confianza total**: no hay firma ni sandbox, igual que
-en otros motores con mods. Un mod es código que corre dentro del editor, con
-los mismos permisos. Instala solo paquetes de autores en los que confíes; el
-motor no puede distinguir un mod benigno de uno malicioso.
-
-### 18.9 Estado activo
-
-El estado activo de cada mod se guarda por ámbito: los mods del motor en la
-configuración general del editor (`Configuracion.json`) y los del proyecto en
-la del proyecto (`ConfiguracionProyecto.json`). Un mod que no está en el mapa
-se considera activo por defecto.
-
-### 18.10 Actualización y alcance de esta versión
-
-No hay hot-reload: los mods se cargan al arrancar y se descargan al salir.
-Actualizar un mod es reemplazar su `.fmod` y reiniciar el editor. Esta versión
-cubre el **envase, la carga y los paneles**: descubre, valida y ordena los
-paquetes, extrae el binario de cada uno a la caché, lo abre y lo inicializa; el
-mod recibe la tabla de servicios, se actualiza una vez por frame y puede
-registrar paneles de GUI propios.
-
----
-
----
-
-## 19. API de inspeccion de escena
-
-El motor publica un contrato para que una herramienta externa pueda leer y
-modificar una escena sin abrir el editor. La herramienta que lo consume hoy es
-la **CLI** (`FunshiEngineCLI`), que es un **proyecto aparte**: el motor
-publica la API y la CLI la usa; no hay ningun ejecutable de linea de comandos
-dentro de este repositorio.
-
-El contrato vive en `FunshiEngineGL/src/Inspeccion/`:
-
-| Archivo | Que aporta |
-|---|---|
-| `ApiEscena.h` | El contrato `IApiEscena`, las vistas y `versionApiEscena` |
-| `PropiedadesComponentes.h/.cpp` | Las variables de cada tipo de componente |
-| `TextoValor.h/.cpp` | Las conversiones entre texto y valor |
-| `InspeccionEscena.h/.cpp` | La implementacion sobre la escena y el editor |
-
-### 19.1 Version del contrato
-
-`versionApiEscena` versiona el contrato de inspeccion. Es **independiente** de
-la version de los scripts (`versionRuntimeScript`): subir una no recompila los
-scripts de los proyectos ni invalida su cache. Una herramienta comprueba el
-numero al arrancar y avisa si no coincide con el que espera.
-
-### 19.2 Consultar la escena
-
-`listarObjetos(filtro)` devuelve los objetos de la escena que cumplen el
-filtro. Los filtros se acumulan (se combinan entre si):
-
-| Filtro | Que selecciona |
-|---|---|
-| `componente` | Objetos que tienen ese componente (se acepta el nombre canonico y los alias, como `Camera` por `CameraComponent`) |
-| `etiqueta` | Objetos con esa etiqueta (tag) exacta |
-| `nombre` | Por nombre exacto, o parcial si `nombreParcial` esta activo (no distingue mayusculas) |
-| `id` | Un objeto concreto |
-| `tipoObjeto` | Por tipo: `SimpleObject`, `Modelos3D`, `GameObject`... |
-| `limite` | Maximo de objetos devueltos (0 = sin limite) |
-
-De cada objeto se devuelve su id, nombre, etiqueta, tipo, id del padre,
-posicion local, posicion global (compuesta con la de sus padres), cantidad de
-componentes y el numero de componentes que tiene.
-
-`componentesDe(id)` devuelve los componentes del objeto con sus variables y el
-valor actual de cada una. `objetoPorId(id)` devuelve el objeto, o nada si no
-existe.
-
-### 19.3 Modificar la escena
-
-Toda mutacion pasa por el gestor de comandos del editor, asi que se deshace
-igual que en el editor. Las operaciones que fallan no dejan la escena a medias:
-devuelven `false` y el motivo.
-
-| Operacion | Que hace |
-|---|---|
-| `crearObjeto(nombre, idPadre)` | Crea un objeto simple. Si el nombre ya esta en uso, recibe un sufijo numerico (`Enemigo 2`) |
-| `establecerEtiqueta(id, etiqueta)` | Fija la etiqueta (tag) |
-| `crearComponente(id, tipo)` | Agrega un componente. Respeta los prerrequisitos del catalogo (un `RigidBody` necesita un `Collider`) y no admite dos componentes del mismo tipo |
-| `quitarComponente(id, tipo)` | Quita un componente |
-| `asignarVariable(id, tipoComponente, variable, valor)` | Escribe una variable de un componente |
-| `guardarEscena(prefijo)` / `cargarEscena(prefijo)` | Guarda y carga la escena |
-
-La escena se guarda con un **prefijo** de ruta, igual que el motor al guardar
-un proyecto: el indice queda en `<prefijo>BBDDObjetos.txt` y los binarios de
-cada objeto en la carpeta `<prefijo>/`.
-
-### 19.4 Variables y su formato
-
-El valor de una variable es texto, y el motor lo interpreta segun el tipo de
-la variable:
-
-| Tipo | Como se escribe | Ejemplo |
-|---|---|---|
-| `Entero` | Un entero | `12` |
-| `Flotante` | Un numero (se rechazan `nan` e infinitos) | `1.5` |
-| `Booleano` | `true`/`false` (o `1`/`0`) | `true` |
-| `Texto` | El texto tal cual | `assets/sonido.ogg` |
-| `Vec2`, `Vec3`, `Vec4` | Los numeros separados por espacios o comas | `1 2 3` |
-| `Enumeracion` | Uno de los valores admitidos | `Puntual` |
-
-Las variables disponibles por tipo de componente:
-
-| Componente | Variables |
-|---|---|
-| `Transform` | `position`, `scale`, `rotationAngle`, `rotationAxis` |
-| `RigidBody` | `mass`, `active`, `useGravity`, `gravityScale`, `friction`, `sensor`, `freezePositionX/Y/Z`, `freezeRotationX/Y/Z` |
-| `Light` | `type` (`Direccional`, `Puntual`, `Spot`), `ambient`, `diffuse`, `specular`, `attenuationConstant`, `attenuationLinear`, `attenuationQuadratic`, `spotCutOff` |
-| `CameraComponent` | `fov`, `projection` (`Perspectiva`, `Ortografica`), `orthoSize`, `nearPlane`, `farPlane`, `speed` |
-| `Material` | `ambient`, `diffuse`, `specular`, `emission`, `shininess`, `diffuseMap`, `specularMap`, `normalMap`, `emissionMap` |
-| `Materiales` | `selectedRegion` |
-| `Color` | `color` |
-| `Grid` | `visible`, `color`, `size`, `separation` |
-| `SpriteRenderer` | `texturePath`, `tint`, `size`, `uvRect` |
-| `AudioSource` | `clipPath`, `volume`, `loop`, `autoplay` |
-| `Musica` | `volume`, `fadeDuration`, `autoplay`, `repeatList` |
-| `InterfaceComponent` | `htmlPath`, `active`, `anchor`, `offset`, `autoSize`, `size`, `z` |
-| `UIComponent` | `active`, `z` |
-| `EsfereCollider`, `CubeCollider` | `radius`, `visibleInScene` |
-| `MallaCollider`, `TilemapCollider` | `visibleInScene` |
-| `Skybox` | `visible`, `facePositiveX/NegativeX/PositiveY/NegativeY/PositiveZ/NegativeZ` |
-| `Animador2D` | `columns`, `rows`, `firstFrame`, `lastFrame`, `fps`, `loop`, `playing` |
-| `Model` | `path` |
-| `Script` | `sourcePath`, `componentName`, `deferredLoad` |
-| `Tilemap` | `tilesetPath` |
-
-Notas:
-
-- La rotacion del motor es un angulo global mas un eje: por eso se expone en
-  dos variables (`rotationAngle` en grados y `rotationAxis`) en vez de una
-  sola.
-- Los colores del material son RGB: el motor fuerza el canal alfa a 1.
-- Cambiar la variable `sourcePath` de un `Script` descarta el comportamiento
-  cargado, asi que el motor lo vuelve a compilar.
-- Los valores se **validan antes** de aplicarse: un texto que no encaja con
-  el tipo (por ejemplo `abc` en una variable numerica) se rechaza con su
-  motivo y la escena no cambia.
-
----
-
----
-
-## 20. Particulas y efectos
-
-Un **emisor de particulas** es un componente: se agrega a cualquier objeto
-desde el inspector (pestaña "Agregar componente") y suelta particulas en la
-posicion del objeto. Sin mas, cada particula es un quad de color plano que
-sale disparado en la direccion del emisor y se apaga al terminar su vida.
-
-### 20.1 Que se puede editar
-
-El panel del emisor tiene:
-
-| Campo | Que hace |
-|---|---|
-| Activo | Apaga o enciende la emision sin quitar el componente |
-| Particulas por segundo | Cuantas particulas suelta por segundo |
-| Vida minima / maxima | Cuanto viven (en segundos) |
-| Velocidad minima / maxima | A que velocidad salen (unidades de mundo por segundo) |
-| Tamano minimo / maximo | De que tamano nacen (unidades de mundo) |
-| Color | El color con el que nacen |
-| Direccion | El eje del cono de emision |
-| Dispersion | Cuanto se abre el cono (0 = todas en la direccion, 1 = cono de 90 grados) |
-| Gravedad | La aceleracion constante que se les aplica |
-| Rozamiento | La fraccion de velocidad que pierden por segundo |
-| Rotacion / Velocidad de rotacion | El giro del quad |
-| Ruta (perfil de efecto) | El JSON del efecto (opcional) |
-
-Las particulas se dibujan despues de los sprites, con mezcla aditiva, y no
-escriben profundidad: el orden de dibujo decide el solapamiento.
-
-### 20.2 El perfil de efecto
-
-Un perfil es un archivo JSON que describe un efecto completo: la textura, la
-vida, la velocidad, la gravedad y las **curvas de tamano y color** a lo largo
-de la vida. Con perfil, sus valores mandan sobre los del emisor (salvo la
-tasa, que sigue siendo del emisor).
-
-El formato:
-
-```json
-{
-  "version": 1,
-  "nombre": "Humo",
-  "textura": "particulas/humo.png",
-  "vida": [0.6, 1.2],
-  "velocidad": [1.0, 2.0],
-  "aceleracion": [0.0, -1.0, 0.0],
-  "rozamiento": 0.2,
-  "tamanos": [0.4, 1.0, 1.2],
-  "colores": [[1, 1, 1, 0.6], [0.5, 0.5, 0.5, 0.0]]
-}
-```
-
-- `vida` y `velocidad` son pares `[minimo, maximo]`.
-- `aceleracion` es una terna (x, y, z).
-- `tamanos` son los multiplicadores de tamano por punto de la curva: el
-  primero es el nacimiento y el ultimo la muerte; entre ellos se interpola de
-  forma lineal. Un tamano de 0.4 que sube a 1.2 hace que la particula crezca.
-- `colores` son los colores RGBA por punto de la curva, con la misma
-  convencion. Un color que se va a alfa 0 hace que la particula se apague.
-
-Todos los campos son opcionales. Si el JSON esta mal escrito (un rango
-invertido, un color con menos de cuatro componentes), el emisor se queda sin
-perfil y el panel muestra el motivo.
-
-La ruta del perfil se guarda **relativa a la carpeta de assets** del proyecto,
-igual que las texturas de los materiales.
-
-### 20.3 Como se ejecuta
-
-La simulacion corre en el editor y en juego: un efecto se ve mientras se
-edita. El numero de particulas vivas esta acotado (4000 por defecto), asi que
-un efecto con muchos emisores no puede hundir el frame: cuando se llega al
-limite, se descarta la particula mas vieja.
-
-Las particulas son **cinematicas**: no chocan con la fisica. Si un efecto
-necesita rebotar, habria que consultarlo contra el mundo.
-
-### 20.4 Desde la consola
-
-El emisor es un componente mas, asi que la API de inspeccion (seccion 19) lo
-altera como a cualquier otro: `scene.component.create` con el tipo
-`EmisorParticulas`, y `scene.component.set` con sus variables (`rate`,
-`lifeMin`, `lifeMax`, `speedMin`, `speedMax`, `sizeMin`, `sizeMax`, `color`,
-`direction`, `dispersion`, `gravity`, `drag`, `rotation`, `rotationSpeed`,
-`profilePath` y `active`).
-
----
-
-## 21. Interfaz de juego nativa (HUD del motor)
-
-La seccion 9 describe la interfaz **web** (una pagina `.html` que se muestra
-dentro del juego). Esta describe la interfaz **nativa**: un conjunto de widgets
-(etiquetas, botones, imagenes y paneles) que dibuja el motor, sin navegador de
-por medio y sin que el usuario tenga que saber HTML.
-
-Las dos conviven: una escena puede tener una interfaz web y una nativa, o
-varias nativas.
-
-### 21.1 Que se puede editar
-
-- Agrega `UIComponent` a un GameObject desde el inspector (pestaña "Agregar
-  componente", entrada "Interfaz de juego (nativa)").
-- El panel del componente tiene:
-  - **Activa**: apaga o enciende el HUD sin quitar el componente.
-  - **Z**: el orden de apilado entre varias interfaces nativas (la de mayor z
-    queda encima).
-  - **Anadir widget**: el menu para agregar un widget del tipo que corresponda.
-- Cada widget se edita en su propia entrada de la lista (la flecha del titulo
-  la abre):
-  - **Identificador**: el nombre con el que un script consulta el widget. Es
-    lo que permite referirse a "vida" o "botonStart" sin conocer el orden de la
-    lista. No tiene que ser unico, pero conviene que lo sea.
-  - **Tipo**: `Panel`, `Etiqueta`, `Imagen` o `Boton`.
-  - **Ancla**: la posicion de la pantalla a la que se pega (las nueve
-    posiciones, como la interfaz web).
-  - **Desplazamiento**: pixeles de separacion respecto al ancla.
-  - **Tamano**: ancho y alto del widget, en pixeles.
-  - **Color**: el color de fondo (panel y boton) o del texto (etiqueta).
-  - **Color del texto**: el color del texto (boton y etiqueta).
-  - **Texto**: lo que escribe la etiqueta o el boton.
-  - **Tamano del texto**: el cuerpo con el que se dibuja.
-  - **Ruta de la imagen** (solo en las imagenes): se arrastra un archivo del
-    proyecto; la ruta se guarda relativa a la carpeta de assets.
-  - **Visible**: apaga el widget sin quitarlo de la lista.
-  - **Subir** / **Bajar**: cambian el orden de apilado (el ultimo de la lista se
-    dibuja encima).
-  - **Quitar widget**: lo saca de la lista.
-
-### 21.2 Colocacion
-
-Cada widget se ancla a una de las nueve posiciones de la pantalla y crece desde
-ahi hacia el lado que le corresponde: el de arriba centro queda centrado en
-horizontal, el de abajo derecha pegado a la esquina, y asi con los demas. El
-desplazamiento lo separa del punto de anclaje y el tamano decide cuanto
-ocupa.
-
-La colocacion se recalcula sola cuando cambia el tamano de la ventana.
-
-### 21.3 El raton
-
-El boton es el unico widget interactivo: es el que recibe el clic. Cuando el
-puntero esta encima de un boton, el boton se aclara y **el juego deja de girar
-la camara con el raton** (el boton se queda el raton).
-
-El clic se entrega **por consulta**, no por callback: un script pregunta en su
-actualizacion si el boton se pulso en este frame. El estado se borra al
-terminar el frame, asi que un clic no se repite.
-
-### 21.4 Desde los scripts
-
-La interfaz nativa se maneja con el handle del objeto. En C++ se puede
-declarar el campo y **arrastrar la interfaz** desde su inspector al campo
-(igual que con la interfaz web):
-
-```cpp
-// El campo apunta al UIComponent del objeto arrastrado.
-REFLECT_COMPONENTE(hud, "UIComponent")
-```
-
-Y tambien se puede obtener por el nombre del objeto:
-
-```cpp
-// C++
-void* hud = servicios->interfazNativaDeObjeto("HUD");
-servicios->interfazNativaEstablecerTexto(hud, "vida", "80");
-if (servicios->interfazNativaBotonPulsado(hud, "botonStart")) {
-    servicios->interfazNativaEstablecerVisible(hud, false);
-}
-```
-
-```java
-// Java
-long hud = Nativo.interfazNativaDeObjeto("HUD");
-Nativo.interfazNativaEstablecerTexto(hud, "vida", "80");
-if (Nativo.interfazNativaBotonPulsado(hud, "botonStart")) {
-    Nativo.interfazNativaEstablecerVisible(hud, false);
-}
-```
-
-Las seis funciones estan en la tabla de servicios de la seccion 13.4 (C++) y
-en la tabla de la seccion 15.2 (Java). Todas toleran un handle nulo (no hace
-nada) y devuelven `false` si no hay ningun widget con ese identificador.
-
-### 21.5 Diferencias con la interfaz web
-
-- La nativa no necesita ningun motor de navegador: el motor dibuja los widgets
-  con su propio dibujado de pantalla.
-- La tipografia es la de la fuente que trae el motor, escalada por widget. No
-  hay TTF propia todavia.
-- La colocacion es respecto a la **ventana**, no respecto al viewport 3D: en el
-  editor, con los paneles visibles, el HUD se ve encima de ellos.
-- El texto y la visibilidad de un widget se cambian por su identificador; no
-  hay un arbol de estado con JSON como en la interfaz web.
 
 ---

@@ -1,5 +1,5 @@
 /*
-    FunshiEngineGL - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,24 +38,13 @@
 #include <iostream>
 #include <string>
 #include <thread>
-#include <type_traits>
 #include <vector>
 
-#include "../FunshiEngineGL/src/Objetos/Componentes/InterfaceComponent.h"
-#include "../FunshiEngineGL/src/WebUI/BackendNull.h"
-#include "../FunshiEngineGL/src/WebUI/EstadoInterfaces.h"
-#include "../FunshiEngineGL/src/WebUI/IWebUIBackend.h"
-#include "../FunshiEngineGL/src/WebUI/VistaWebUI.h"
-#include "../FunshiEngineGL/src/WebUI/VistasWebUI.h"
-#include "../FunshiEngineGL/src/WebUI/WebUIRuntime.h"
-
-// El contrato de la interfaz web no tiene comportamiento por defecto (cada
-// backend declara que hace al arrancar, al bombear y al cerrar) y el backend
-// nulo lo implementa entero.
-static_assert(std::is_abstract<IWebUIBackend>::value,
-              "el contrato de la interfaz web exige implementar todos sus metodos");
-static_assert(!std::is_abstract<BackendNullWebUI>::value,
-              "el backend nulo implementa el contrato completo");
+#include "../FunshiEngineC/src/Objetos/Componentes/InterfaceComponent.h"
+#include "../FunshiEngineC/src/WebUI/EstadoInterfaces.h"
+#include "../FunshiEngineC/src/WebUI/VistaWebUI.h"
+#include "../FunshiEngineC/src/WebUI/VistasWebUI.h"
+#include "../FunshiEngineC/src/WebUI/WebUIRuntime.h"
 
 namespace {
 

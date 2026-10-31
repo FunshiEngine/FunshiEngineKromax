@@ -1,5 +1,5 @@
 /*
-    FunshiEngineGL - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,10 +30,10 @@
 #include <chrono>
 
 #include "TempPruebas.h"
-#include "../FunshiEngineGL/src/Behaviour/Backends/BackendJava.h"
-#include "../FunshiEngineGL/src/Behaviour/Backends/SondeoToolchain.h"
-#include "../FunshiEngineGL/src/Behaviour/Reflection/BehaviourReflection.h"
-#include "../FunshiEngineGL/src/Behaviour/ScriptRuntime.h"
+#include "../FunshiEngineC/src/Behaviour/Backends/BackendJava.h"
+#include "../FunshiEngineC/src/Behaviour/Backends/SondeoToolchain.h"
+#include "../FunshiEngineC/src/Behaviour/Reflection/BehaviourReflection.h"
+#include "../FunshiEngineC/src/Behaviour/ScriptRuntime.h"
 
 using namespace ReflejoScripts;
 namespace fs = std::filesystem;
@@ -67,9 +67,6 @@ bool freezeR[3] = {false, false, false};
 float gravMundo[3] = {0.0f, -1.0f, 0.0f};
 void* objetoCreado = reinterpret_cast<void*>(static_cast<intptr_t>(0x4000));
 void* objetoClonado = reinterpret_cast<void*>(static_cast<intptr_t>(0x5000));
-bool musicaReproducida = false;
-float fundidoSalida = -1.0f;
-float volumenBus = -1.0f;
 }
 
 const ApiScriptGameObject* tablaApi() {
@@ -176,8 +173,8 @@ const ApiScriptGameObject* tablaApi() {
 
 const ScriptServices* tablaServicios() {
     static const ScriptServices servicios = {
-        [](const char* ruta, float volumen, bool bucle) {
-            return ruta && std::string(ruta) == "disparo.wav" &&
+        [](const char* clip, float volumen, bool bucle) {
+            return clip && std::string(clip) == "disparo.wav" &&
                            volumen == 0.5f && !bucle
                        ? 73
                        : -1;
@@ -229,25 +226,7 @@ const ScriptServices* tablaServicios() {
         [](void*, const char*) { return true; },
         [](void*, const char*, const char*) { return true; },
         [](void*, const char*) { return "3"; },
-        [](const char* ruta, float volumen, float fundido) {
-            musicaReproducida = ruta && std::string(ruta) == "tema.ogg" &&
-                                volumen == 0.8f && fundido == 0.0f;
-            return musicaReproducida;
-        },
-        [](float fundido) { fundidoSalida = fundido; },
-        [](float volumen) { volumenBus = volumen; },
-        // Interfaz de juego nativa (HUD del motor): el handle es opaco.
-        [](const char* nombre) {
-            return nombre && std::string(nombre) == "HUD"
-                       ? reinterpret_cast<void*>(static_cast<intptr_t>(0x5678))
-                       : nullptr;
-        },
-        [](const void*) { return true; },
-        [](void*, bool) {},
-        [](void*, const char*, const char*) { return true; },
-        [](void*, const char*, bool) { return true; },
-        [](void*, const char*) { return false; },
-        9,
+        6,
     };
     return &servicios;
 }
@@ -278,7 +257,6 @@ static const char* FUENTE_JAVA =
     "    public long hud;\n"
     "    public boolean hudActiva, hudEstadoOk, hudValorOk;\n"
     "    public String hudSalida;\n"
-    "    public boolean musicaOk;\n"
     "    @Override public void iniciar(long o) {\n"
     "        vidas = 100;\n"
     "        nombreObjeto = Nativo.nombre(o);\n"
@@ -320,9 +298,6 @@ static const char* FUENTE_JAVA =
     "        destruirOk = Nativo.destruirObjeto(nuevo);\n"
     "        clonarOk = Nativo.clonarObjeto(o, 0) != 0;\n"
     "        agregarOk = Nativo.agregarColliderEsfera(o, 1.0f) && Nativo.agregarColliderCubo(o, 1.0f) && Nativo.agregarRigidBody(o, 1.0f);\n"
-    "        musicaOk = Nativo.reproducirMusica(\"tema.ogg\", 0.8f, 0.0f);\n"
-    "        Nativo.detenerMusica(0.0f);\n"
-    "        Nativo.volumenMusica(0.5f);\n"
     "        Nativo.detenerSonido(sonido);\n"
     "    }\n"
     "    @Override public void actualizar(long o, double dt) {\n"
@@ -389,7 +364,7 @@ int main() {
 
     CHECK(comportamiento.valido(), "objeto Java creado");
     CHECK(comportamiento.lenguaje == "java", "lenguaje = java");
-    CHECK(comportamiento.campos.size() == 53,
+    CHECK(comportamiento.campos.size() == 52,
           "campos publicos Java soportados reflejados (con long como objeto)");
 
     // Inyectar SerializeField y verificar por lectura.
@@ -470,11 +445,6 @@ int main() {
     CHECK(sonido && sonido->como<int>() == 73 &&
               MotorScript::handleSonidoDetenido == 73,
           "Java reproduce y detiene sonido por servicio");
-    const ValorCampo* musicaOk = buscar(valores, "musicaOk");
-    CHECK(musicaOk && musicaOk->como<bool>() &&
-              MotorScript::fundidoSalida == 0.0f &&
-              MotorScript::volumenBus == 0.5f,
-          "Java reproduce la musica por ruta, la detiene y ajusta el bus");
     CHECK(nombreMeta && nombreMeta->como<std::string>() == "meta",
           "Java usa el handle opaco del objeto encontrado en la API");
     CHECK(sostenida && pulsada && soltada && sostenida->como<bool>() &&

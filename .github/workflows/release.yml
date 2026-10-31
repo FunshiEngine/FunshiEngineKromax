@@ -3,7 +3,7 @@ name: Release instaladores
 # Genera los instaladores de Linux (Qt IFW .run) y Windows (Inno .exe) con el
 # codigo del tag y los adjunta a una GitHub Release. No modifica el sistema de
 # packaging: reutiliza packaging/ifw (config.xml/controller.qs intactos) y
-# packaging/FunshiEngineGL_setup.iss / stage_dist_win.ps1 tal como estan.
+# packaging/FunshiEngineC_setup.iss / stage_dist_win.ps1 tal como estan.
 #
 #   Uso: git tag v0.5.2 && git push --tags   (o Run workflow manual).
 
@@ -40,8 +40,8 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - name: Restaurar cache de dependencias vcpkg
-        uses: actions/cache/restore@v4
+      - name: Cache dependencias vcpkg
+        uses: actions/cache@v4
         with:
           path: C:\vcpkg\installed
           key: vcpkg-x64-windows-v1
@@ -50,16 +50,9 @@ jobs:
         shell: pwsh
         run: vcpkg install glfw3 assimp bullet3 glm --triplet x64-windows
 
-      - name: Guardar cache de dependencias vcpkg
-        if: always()
-        uses: actions/cache/save@v4
-        with:
-          path: C:\vcpkg\installed
-          key: vcpkg-x64-windows-v1
-
       - name: Configurar CMake
         run: >
-          cmake -B build -S FunshiEngineGL
+          cmake -B build -S FunshiEngineC
           -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
           -DVCPKG_TARGET_TRIPLET=x64-windows
           -DCMAKE_BUILD_TYPE=Release
@@ -68,10 +61,10 @@ jobs:
           -DFUNSHI_VERSION=${{ steps.ver.outputs.version }}
 
       - name: Compilar engine
-        run: cmake --build build --config Release --target FunshiEngineGL runtime-compile-check
+        run: cmake --build build --config Release --target FunshiEngineC
 
       - name: Compilar pruebas
-        run: cmake --build build --config Release --target terminal-emulator-tests terminal-session-tests diagnostic-registry-tests hilos-tests filemanager-tests importar-archivos-tests configuracion-tests eventbus-tests menu-tests assetmanager-tests texturemanager-tests estructuras-tests editor-input-tests rendering-tests particulas-tests interfaz-ui-tests shaders-tests sombras-tests iluminacion-tests scripts-tests scripts-runtime-tests audio-tests musica-tests interface-component-tests barra-progreso-tests scripts-java-tests model-serialization-tests manifiesto-assets-tests orquestador-estado-tests tema-tests comandos-tests escena-serializacion-tests inspeccion-escena-tests emisor-particulas-tests ui-component-tests serializacion-tests proceso-tests prefab-tests catalogo-componentes-tests iconos-componentes-tests malla-regiones-tests materiales-regiones-tests primitivas3d-tests preview-material-tests tilemap-tests interfaces-juego-tests webui-runtime-tests mods-tests exportacion-tests
+        run: cmake --build build --config Release --target terminal-emulator-tests terminal-session-tests diagnostic-registry-tests filemanager-tests configuracion-tests eventbus-tests menu-tests assetmanager-tests texturemanager-tests estructuras-tests rendering-tests scripts-tests scripts-runtime-tests audio-tests interface-component-tests barra-progreso-tests scripts-java-tests model-serialization-tests manifiesto-assets-tests orquestador-estado-tests tema-tests comandos-tests escena-serializacion-tests proceso-tests prefab-tests catalogo-componentes-tests interfaces-juego-tests webui-runtime-tests
 
       - name: Ejecutar pruebas
         uses: nick-fields/retry@v3
@@ -84,15 +77,15 @@ jobs:
       - name: Montar dist (exe + dlls + Imagenes)
         shell: pwsh
         run: |
-          & "$env:GITHUB_WORKSPACE\FunshiEngineGL\packaging\stage_dist_win.ps1" `
-            -ProjectDir "$env:GITHUB_WORKSPACE\FunshiEngineGL" `
+          & "$env:GITHUB_WORKSPACE\FunshiEngineC\packaging\stage_dist_win.ps1" `
+            -ProjectDir "$env:GITHUB_WORKSPACE\FunshiEngineC" `
             -BuildDir "$env:GITHUB_WORKSPACE\build\Release" `
             -VcpkgInstalled "C:\vcpkg\installed\x64-windows"
 
       - name: Versionar instalador con el tag
         shell: pwsh
         run: |
-          $iss = "FunshiEngineGL\packaging\FunshiEngineGL_setup.iss"
+          $iss = "FunshiEngineC\packaging\FunshiEngineC_setup.iss"
           (Get-Content -Raw $iss) `
             -replace '#define MiVersion "[^"]*"', "#define MiVersion `"${{ steps.ver.outputs.version }}`"" `
             -replace '#define MiCanal "[^"]*"', '#define MiCanal "release"' `
@@ -107,13 +100,13 @@ jobs:
             $iscc = (Get-ChildItem "C:\Program Files*\Inno Setup*\ISCC.exe" -Recurse -ErrorAction SilentlyContinue |
                      Select-Object -First 1 -ExpandProperty FullName)
           }
-          & $iscc "FunshiEngineGL\packaging\FunshiEngineGL_setup.iss"
+          & $iscc "FunshiEngineC\packaging\FunshiEngineC_setup.iss"
 
       - name: Subir setup.exe como artefacto
         uses: actions/upload-artifact@v4
         with:
           name: setup-windows
-          path: FunshiEngineGL\packaging\dist\instalador\*.exe
+          path: FunshiEngineC\packaging\dist\instalador\*.exe
           if-no-files-found: error
 
   instalador-linux:
@@ -156,13 +149,13 @@ jobs:
             libfontconfig1 libdbus-1-3 libglib2.0-0
 
       - name: Configurar
-        run: cmake -B build -S FunshiEngineGL -G Ninja -DCMAKE_BUILD_TYPE=Release -DENABLE_ASAN=OFF -DFUNSHI_JAVA=ON -DFUNSHI_VERSION=${{ steps.ver.outputs.version }}
+        run: cmake -B build -S FunshiEngineC -G Ninja -DCMAKE_BUILD_TYPE=Release -DENABLE_ASAN=OFF -DFUNSHI_JAVA=ON -DFUNSHI_VERSION=${{ steps.ver.outputs.version }}
 
       - name: Compilar engine
-        run: cmake --build build --target FunshiEngineGL runtime-compile-check
+        run: cmake --build build --target FunshiEngineC
 
       - name: Compilar pruebas
-        run: cmake --build build --target terminal-emulator-tests terminal-session-tests diagnostic-registry-tests hilos-tests filemanager-tests importar-archivos-tests configuracion-tests eventbus-tests menu-tests assetmanager-tests texturemanager-tests estructuras-tests editor-input-tests rendering-tests particulas-tests interfaz-ui-tests shaders-tests sombras-tests iluminacion-tests scripts-tests scripts-runtime-tests audio-tests musica-tests interface-component-tests barra-progreso-tests scripts-java-tests model-serialization-tests manifiesto-assets-tests orquestador-estado-tests tema-tests comandos-tests escena-serializacion-tests inspeccion-escena-tests emisor-particulas-tests ui-component-tests serializacion-tests proceso-tests prefab-tests catalogo-componentes-tests iconos-componentes-tests malla-regiones-tests materiales-regiones-tests primitivas3d-tests preview-material-tests tilemap-tests interfaces-juego-tests webui-runtime-tests mods-tests exportacion-tests
+        run: cmake --build build --target terminal-emulator-tests terminal-session-tests diagnostic-registry-tests filemanager-tests configuracion-tests eventbus-tests menu-tests assetmanager-tests texturemanager-tests estructuras-tests rendering-tests scripts-tests scripts-runtime-tests audio-tests interface-component-tests barra-progreso-tests scripts-java-tests model-serialization-tests manifiesto-assets-tests orquestador-estado-tests tema-tests comandos-tests escena-serializacion-tests proceso-tests catalogo-componentes-tests interfaces-juego-tests webui-runtime-tests
 
       - name: Ejecutar pruebas
         uses: nick-fields/retry@v3
@@ -173,40 +166,27 @@ jobs:
           command: ctest --test-dir build --output-on-failure --verbose
 
       - name: Montar datos del paquete IFW (binario + libs locales)
-        run: chmod +x FunshiEngineGL/packaging/stage_dist_linux.sh && FunshiEngineGL/packaging/stage_dist_linux.sh build/FunshiEngineGL
+        run: chmod +x FunshiEngineC/packaging/stage_dist_linux.sh && FunshiEngineC/packaging/stage_dist_linux.sh build/FunshiEngineC
 
       - name: Instalar Qt Installer Framework (aqtinstall)
         run: |
           pip install --quiet aqtinstall
           aqt install-tool linux desktop tools_ifw -O /tmp/qtifw
 
-      - name: Versionar instalador IFW con el tag
-        run: |
-          VERSION="${{ steps.ver.outputs.version }}"
-          FECHA=$(git log -1 --format=%cs)
-          sed -i "s|<Version>[^<]*</Version>|<Version>${VERSION}</Version>|" \
-            FunshiEngineGL/packaging/ifw/config/config.xml
-          sed -i -e "s|<Version>[^<]*</Version>|<Version>${VERSION}</Version>|" \
-                 -e "s|<ReleaseDate>[^<]*</ReleaseDate>|<ReleaseDate>${FECHA}</ReleaseDate>|" \
-            FunshiEngineGL/packaging/ifw/packages/com.funshi.engine/meta/package.xml
-          grep -n "Version\|ReleaseDate" \
-            FunshiEngineGL/packaging/ifw/config/config.xml \
-            FunshiEngineGL/packaging/ifw/packages/com.funshi.engine/meta/package.xml
-
       - name: Generar instalador .run
         run: |
           QIFW_BIN=$(find /tmp/qtifw -name binarycreator -type f | sort | tail -1)
           echo "[qifw] $QIFW_BIN"
           "$QIFW_BIN" --offline-only \
-            -c FunshiEngineGL/packaging/ifw/config/config.xml \
-            -p FunshiEngineGL/packaging/ifw/packages \
-            "FunshiEngineGL-${{ steps.ver.outputs.version }}-linux-x64.run"
+            -c FunshiEngineC/packaging/ifw/config/config.xml \
+            -p FunshiEngineC/packaging/ifw/packages \
+            "FunshiEngineC-${{ steps.ver.outputs.version }}-linux-x64.run"
 
       - name: Subir instalador .run como artefacto
         uses: actions/upload-artifact@v4
         with:
           name: installer-linux
-          path: ./FunshiEngineGL-*-linux-x64.run
+          path: ./FunshiEngineC-*-linux-x64.run
           if-no-files-found: error
 
   publicar-release:

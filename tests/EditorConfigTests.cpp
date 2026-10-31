@@ -1,5 +1,5 @@
 /*
-    FunshiEngineGL - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,12 +37,12 @@
 #include <vector>
 
 #include "TempPruebas.h"
-#include "../FunshiEngineGL/src/Configuracion/EditorConfig.h"
-#include "../FunshiEngineGL/src/Configuracion/ProjectPaths.h"
-#include "../FunshiEngineGL/src/Exportador/RutasExportacion.h"
-#include "../FunshiEngineGL/src/Configuracion/ProyectoInicial.h"
-#include "../FunshiEngineGL/src/Configuracion/Apariencia.h"
-#include "../FunshiEngineGL/src/Configuracion/RutasLog.h"
+#include "../FunshiEngineC/src/Configuracion/EditorConfig.h"
+#include "../FunshiEngineC/src/Configuracion/ProjectPaths.h"
+#include "../FunshiEngineC/src/Exportador/RutasExportacion.h"
+#include "../FunshiEngineC/src/Configuracion/ProyectoInicial.h"
+#include "../FunshiEngineC/src/Configuracion/Apariencia.h"
+#include "../FunshiEngineC/src/Configuracion/RutasLog.h"
 
 namespace fs = std::filesystem;
 
@@ -87,8 +87,6 @@ int main() {
         CHECK(cfg.datos().dimension == DimensionProyecto::TresD,
               "default dimension 3D");
         CHECK(cfg.datos().estadoVentanas.empty(), "default sin ventanas");
-        CHECK(cfg.datos().modsMotor.empty() && cfg.datos().modsProyecto.empty(),
-              "default sin mods activos");
         CHECK(cfg.datos().apariencia.temaClaro == false, "default tema oscuro");
         CHECK(cfg.datos().apariencia.blancoYNegro == false, "default no B/N");
         CHECK(cfg.datos().apariencia.acento[3] == 1.0f, "default acento opaco");
@@ -336,39 +334,6 @@ int main() {
         cfg.cargarGeneral(rutaGeneral);
         CHECK(cfg.datos().nombreProyecto.empty(), "corrupto -> defaults");
         CHECK(cfg.datos().idioma == "Espanol", "corrupto -> defaults idioma");
-        CHECK(cfg.datos().modsMotor.empty(), "corrupto -> sin mods");
-
-        // 2d. Estado de mods por ambito: los del motor viajan en la config
-        //     general y los del proyecto en la de proyecto; cada uno sobrevive
-        //     su round-trip sin mezclarse.
-        {
-            const std::string rutaModsG = (base / "mods_general.json").string();
-            const std::string rutaModsP = (base / "mods_proyecto.json").string();
-            EditorConfig cfgMods;
-            cfgMods.datos().modsMotor["Autor.MotorUno"] = false;
-            cfgMods.datos().modsMotor["Autor.MotorDos"] = true;
-            cfgMods.datos().modsProyecto["Autor.ProyectoUno"] = false;
-            cfgMods.guardarGeneral(rutaModsG);
-            cfgMods.guardarProyecto(proyNombreTest, rutaModsP);
-
-            EditorConfig leido;
-            leido.cargarGeneral(rutaModsG);
-            leido.cargarProyecto(proyNombreTest, rutaModsP);
-            CHECK(leido.datos().modsMotor.size() == 2, "round-trip de mods del motor");
-            CHECK(leido.datos().modsMotor["Autor.MotorUno"] == false,
-                  "el mod del motor deshabilitado se conserva");
-            CHECK(leido.datos().modsMotor["Autor.MotorDos"] == true,
-                  "el mod del motor habilitado se conserva");
-            CHECK(leido.datos().modsProyecto.size() == 1,
-                  "round-trip de mods del proyecto");
-            CHECK(leido.datos().modsProyecto["Autor.ProyectoUno"] == false,
-                  "el mod del proyecto deshabilitado se conserva");
-            // Los dos ambitos no se mezclan entre archivos.
-            CHECK(leido.datos().modsMotor.count("Autor.ProyectoUno") == 0,
-                  "el mod del proyecto no se guarda en la config general");
-            CHECK(leido.datos().modsProyecto.count("Autor.MotorUno") == 0,
-                  "el mod del motor no se guarda en la config del proyecto");
-        }
     }
 
     // 4. Parcial: el campo presente se aplica, el ausente conserva el default.
@@ -533,8 +498,8 @@ CHECK(cfgBajo.datos().apariencia.radioDifuminado ==
 
     // 5b. Rutas que el exportador copia a la distribucion del juego standalone.
     // El proyecto viaja COMPLETO con la disposicion del motor: el binario del
-    // juego resuelve MotorGrafico/ junto a si mismo, asi que escenas, Memory y
-    // src<nombre>/ tienen que quedar bajo Proyects/<nombre>/.
+    // juego resuelve MotorGrafico/ junto a si mismo, asi que escenas, Memory,
+    // Sonidos y src<nombre>/ tienen que quedar bajo Proyects/<nombre>/.
     {
         const std::string nombre = "JuegoExport";
         const std::string salida = EditorConfig::directorioExportacion("JuegoExportado");
@@ -555,6 +520,7 @@ CHECK(cfgBajo.datos().apariencia.radioDifuminado ==
         const std::string prefijo = EditorConfig::directorioProyecto(nombre) + "/";
         for (const std::string clave :
              {EditorConfig::directorioMemory(nombre),
+              EditorConfig::directorioSonidos(nombre),
               EditorConfig::rutaConfiguracionProyecto(nombre)}) {
             CHECK(clave.rfind(prefijo, 0) == 0,
                   "el origen vive dentro del proyecto: " + clave);
@@ -581,35 +547,37 @@ CHECK(cfgBajo.datos().apariencia.radioDifuminado ==
               "asegurarEstructuraProyecto creo Memory/Binarios/Scene");
         CHECK(fs::is_directory(srcDir),
               "asegurarEstructuraProyecto creo srcJuegoPrueba");
-        // Las carpetas de assets las crea el usuario: el motor no las crea.
-        CHECK(!fs::is_directory(srcDir + "/Sonidos"),
-              "el motor no crea la carpeta de sonidos");
-        CHECK(!fs::is_directory(srcDir + "/Scripts"),
-              "el motor no crea la carpeta de scripts");
-        CHECK(!fs::is_directory(proyDir + "/Mods"),
-              "el motor no crea la carpeta de mods");
+        // Sonidos es un asset: el usuario decide cuando crearlo (no auto-creado).
+        const std::string sonidosDir = EditorConfig::directorioSonidos(proyNombre);
+        CHECK(sonidosDir == srcDir + "/Sonidos",
+              "directorioSonidos dentro de src<proyecto>");
+        // El directorio NO se crea automaticamente: lo decide el usuario.
 
         // Limpieza de prueba
         std::error_code ec;
         fs::remove_all(proyDir, ec);
     }
 
-    // 5b. Las carpetas de assets las crea el usuario: el motor no mueve lo que
-    //     el usuario tenga en la raiz del proyecto.
+    // 5b. Migracion de Sonidos: si el usuario habia creado la carpeta en la raiz,
+    //     se mueve al src conservando sus clips.
     {
         const std::string proyNombre = "JuegoMigracion";
         const std::string proyDir = EditorConfig::directorioProyecto(proyNombre);
-        const std::string sonidosRaiz = proyDir + "/Sonidos";
+        const std::string sonidosViejo = proyDir + "/Sonidos";
         std::error_code ec;
-        fs::create_directories(sonidosRaiz, ec);
-        { std::ofstream out(sonidosRaiz + "/tema.wav"); out << "clip"; }
+        fs::create_directories(sonidosViejo, ec);
+        { std::ofstream out(sonidosViejo + "/tema.wav"); out << "clip"; }
 
         EditorConfig::asegurarEstructuraProyecto(proyNombre);
 
-        CHECK(fs::is_directory(sonidosRaiz),
-              "el motor deja la carpeta de assets donde la puso el usuario");
-        CHECK(fs::exists(sonidosRaiz + "/tema.wav"),
-              "el motor no mueve los archivos de assets del usuario");
+        const std::string sonidosNuevo =
+            EditorConfig::directorioSonidos(proyNombre);
+        CHECK(!fs::exists(sonidosViejo),
+              "migracion retira Sonidos de la raiz del proyecto");
+        CHECK(fs::is_directory(sonidosNuevo),
+              "migracion crea Sonidos dentro del src");
+        CHECK(fs::exists(sonidosNuevo + "/tema.wav"),
+              "migracion conserva los clips de audio");
 
         fs::remove_all(proyDir, ec);
     }
@@ -1055,8 +1023,8 @@ CHECK(cfgBajo.datos().apariencia.radioDifuminado ==
     //    la temporal del sistema es el ultimo recurso. Sin esto, instalado en
     //    Program Files el motor se queda sin log ni consola que lo muestre.
     {
-        const std::string exe = "/opt/FunshiEngineGL";
-        const std::string datosUsuario = "/home/usuario/.local/share/FunshiEngineGL/MotorGrafico";
+        const std::string exe = "/opt/FunshiEngineC";
+        const std::string datosUsuario = "/home/usuario/.local/share/FunshiEngineC/MotorGrafico";
         const std::string temp = "/tmp";
 
         const std::vector<std::string> rutas = RutasLog::candidatas(
@@ -1065,7 +1033,7 @@ CHECK(cfgBajo.datos().apariencia.radioDifuminado ==
         CHECK(rutas[0] == (fs::path(datosUsuario) / "logs").string(),
               "la primera candidata es la raiz de datos");
         CHECK(rutas[1] == (fs::path(exe) / "logs").string(), "la segunda, la carpeta del ejecutable");
-        CHECK(rutas[2] == (fs::path(temp) / "FunshiEngineGL" / "logs").string(),
+        CHECK(rutas[2] == (fs::path(temp) / "FunshiEngineC" / "logs").string(),
               "la tercera, la temporal del motor");
 
         // Sin raiz de datos no se pierde la carpeta del ejecutable.
@@ -1082,7 +1050,7 @@ CHECK(cfgBajo.datos().apariencia.radioDifuminado ==
         const std::vector<std::string> repetidas =
             RutasLog::candidatas(exe, exe, temp);
         CHECK(repetidas.size() == 2 && repetidas[0] == (fs::path(exe) / "logs").string() &&
-                  repetidas[1] == (fs::path(temp) / "FunshiEngineGL" / "logs").string(),
+                  repetidas[1] == (fs::path(temp) / "FunshiEngineC" / "logs").string(),
               "una ruta repetida no se prueba dos veces");
     }
 

@@ -1,5 +1,5 @@
 ﻿/*
-    FunshiEngineGL - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,21 +18,20 @@
 */
 
 // Geometria de lineas del pipeline moderno (LineBuilder: la expansion de cada
-// segmento al quad que dibuja kLineVertexShader) y calculo de la recta de la
-// guia de eje (GuiaEje) sin pila grafica ni GL: solo std C++17.
+// segmento al quad que dibuja el programa de lineas) y calculo de la recta de
+// la guia de eje (GuiaEje) sin pila grafica: solo std C++17.
 
 #include <cmath>
 #include <iostream>
 #include <string>
 
-#include "../FunshiEngineGL/src/Assets/Primitivas2D.h"
-#include "../FunshiEngineGL/src/Configuracion/Apariencia.h"
-#include "../FunshiEngineGL/src/Rendering/CacheCubemap.h"
-#include "../FunshiEngineGL/src/Rendering/Cielo.h"
-#include "../FunshiEngineGL/src/Rendering/Difuminado.h"
-#include "../FunshiEngineGL/src/Rendering/GuiaEje.h"
-#include "../FunshiEngineGL/src/Rendering/LineBuilder.h"
-#include "../FunshiEngineGL/src/Rendering/Shaders/ShaderSources.h"
+#include "../FunshiEngineC/src/Assets/Primitivas2D.h"
+#include "../FunshiEngineC/src/Configuracion/Apariencia.h"
+#include "../FunshiEngineC/src/Rendering/CacheCubemap.h"
+#include "../FunshiEngineC/src/Rendering/Cielo.h"
+#include "../FunshiEngineC/src/Rendering/Difuminado.h"
+#include "../FunshiEngineC/src/Rendering/GuiaEje.h"
+#include "../FunshiEngineC/src/Rendering/LineBuilder.h"
 
 namespace {
 
@@ -687,23 +686,6 @@ void testDifuminadoOpacidad() {
           "la forma de la curva no depende del radio");
 }
 
-void testShaderLineasRespetaHorizonteRadial() {
-    const std::string vertex = kLineVertexShader;
-    const std::string fragment = kLineFragmentShader;
-    CHECK(vertex.find("out vec3 vWorldPosition") != std::string::npos &&
-              vertex.find("vWorldPosition = mix(worldS, worldE, aAlong)") !=
-                  std::string::npos,
-          "el shader de lineas entrega la posicion mundial de cada fragmento");
-    CHECK(fragment.find("length(vWorldPosition - uCameraPosition)") !=
-                  std::string::npos &&
-              fragment.find("distanciaCamara >= uDistanceFadeEnd") !=
-                  std::string::npos &&
-              fragment.find("discard") != std::string::npos,
-          "el shader descarta las lineas fuera del radio de horizonte");
-    CHECK(fragment.find("uDistanceFadeStart") != std::string::npos &&
-              fragment.find("1.0 - t * t") != std::string::npos,
-          "el shader difumina las lineas hasta el borde radial");
-}
 
 // Cielo: los colores efectivos resuelven el modo B/N y el tema, devolviendo
 // los dos extremos del degradado (superior e inferior).
@@ -815,25 +797,6 @@ void testPrimitivaQuad2D() {
 // Shader de sprites: los atributos tienen que coincidir con el layout fijo del
 // VAO de createMesh (posicion en 0, UV en 2) y el fragment tiene que aplicar
 // tinte, textura opcional y descarte por alpha.
-void testShaderSprites() {
-    const std::string vertex = kSpriteVertexShader;
-    const std::string fragment = kSpriteFragmentShader;
-    CHECK(vertex.find("layout(location = 0) in vec3 aPosition") !=
-                  std::string::npos &&
-              vertex.find("layout(location = 2) in vec2 aUv") !=
-                  std::string::npos,
-          "el shader de sprites lee posicion (0) y UV (2) del VAO de createMesh");
-    CHECK(vertex.find("uUvRect") != std::string::npos &&
-              vertex.find("mix(uUvRect.xy, uUvRect.zw, aUv)") !=
-                  std::string::npos,
-          "el shader recorta la region de la textura por vertice");
-    CHECK(fragment.find("uUseTexture") != std::string::npos &&
-              fragment.find("texture(uTexture, vUv)") != std::string::npos,
-          "el fragment multiplica el texel cuando el sprite tiene textura");
-    CHECK(fragment.find("uTint") != std::string::npos &&
-              fragment.find("discard") != std::string::npos,
-          "el fragment aplica el tinte y descarta los fragmentos transparentes");
-}
 
 int main() {
     testConstantes();
@@ -857,11 +820,9 @@ int main() {
     testDifuminadoDesdeRadio();
     testDifuminadoAcotaElRadio();
     testDifuminadoOpacidad();
-    testShaderLineasRespetaHorizonteRadial();
     testCieloColoresEfectivos();
     testCacheCubemapClave();
     testPrimitivaQuad2D();
-    testShaderSprites();
 
     std::cout << "Resultado: " << (total - fallos) << "/" << total
               << " OK" << std::endl;

@@ -7,11 +7,11 @@ Guía rápida para agentes (y humanos) que trabajen en este repositorio.
 ```bash
 # Configurar y compilar (CMake es el único build soportado; la solución de
 # Visual Studio la genera CMake dentro del directorio de build, no se versiona)
-cmake -S FunshiEngineGL -B FunshiEngineGL/build
-cmake --build FunshiEngineGL/build -j$(nproc)
+cmake -S FunshiEngineC -B FunshiEngineC/build
+cmake --build FunshiEngineC/build -j$(nproc)
 
 # Ejecutar la suite de tests (19 targets headless + scripts-java si hay JDK)
-cd FunshiEngineGL/build && ctest --output-on-failure
+cd FunshiEngineC/build && ctest --output-on-failure
 ```
 
 - **`cmake` sin `-DCMAKE_BUILD_TYPE` fuerza Debug** (`CMakeLists.txt`), y en
@@ -20,7 +20,7 @@ cd FunshiEngineGL/build && ctest --output-on-failure
   build de trabajo normal y para igualar la CI:
 
   ```bash
-  cmake -S FunshiEngineGL -B FunshiEngineGL/build \
+  cmake -S FunshiEngineC -B FunshiEngineC/build \
       -DCMAKE_BUILD_TYPE=Release -DENABLE_ASAN=OFF -DFUNSHI_JAVA=ON
   ```
 
@@ -48,13 +48,6 @@ cd FunshiEngineGL/build && ctest --output-on-failure
   `scripts-java-tests` si no hay JDK resoluble (`JAVAC`/`JAVA_HOME`/PATH).
   `ctest` los reporta como *skipped* aparte; no son tests rotos. El skip es por
   **familia de toolchain**, nunca por sistema operativo (H-14).
-- **GLSL embebido**: los shaders van dentro del binario
-  (`src/Rendering/Shaders/ShaderSources.h`), así que un error de sintaxis no lo
-  ve el compilador de C++: solo aparece cuando el driver compila el programa,
-  con la app ya abierta. El pipeline lo comprueba con `glslangValidator`
-  (`.github/scripts/validar-glsl.py`, job de Ubuntu). Si se toca
-  `ShaderSources.h`, ese script tiene que dar verde: `python
-  .github/scripts/validar-glsl.py` (sale con 77 si no hay validador).
 
 ## Depuración de bugs: instrumentación y validación
 
@@ -73,10 +66,10 @@ con suposiciones.
   El test queda además como regresión permanente de esa causa.
 - **Sondas y laboratorios en directorios locales ignorados por git**: los
   artefactos desechables de una depuración —sondas C++ que compilan y corren
-  sueltos (`FunshiEngineGL/sondas/*.cpp`), scripts de observación, volcados de
+  sueltos (`FunshiEngineC/sondas/*.cpp`), scripts de observación, volcados de
   log, copias locales de proyecto/escena usadas como laboratorio de
   experimentación— se viven en carpetas registradas en `.gitignore`
-  (`FunshiEngineGL/sondas/`, `vgcore.*`). Producen la evidencia del análisis y
+  (`FunshiEngineC/sondas/`, `vgcore.*`). Producen la evidencia del análisis y
   se quedan en local: no son código del motor ni del juego, no entran en
   commits y se retiran cuando el análisis cierra.
 - **Experimentos deterministas**: para que dos corridas sean comparables hay que
@@ -148,14 +141,14 @@ El criterio de aceptación de un fix lo define el usuario probando la app real
 poder lanzarla:
 
 ```bash
-cd FunshiEngineGL && ./build/FunshiEngineGL       # Linux
-cd FunshiEngineGL && ./build/FunshiEngineGL.exe   # Windows
+cd FunshiEngineC && ./build/FunshiEngineC       # Linux
+cd FunshiEngineC && ./build/FunshiEngineC.exe   # Windows
 ```
 
-- Lanzarlo **desde `FunshiEngineGL/`**: los assets y las rutas relativas se
+- Lanzarlo **desde `FunshiEngineC/`**: los assets y las rutas relativas se
   resuelven contra el cwd.
 - La salida (stdout y stderr) se redirige a un archivo por arranque en
-  `logs/`, junto al ejecutable —`FunshiEngineGL_<AAAAMMDD_HHMMSS>.log`, con
+  `logs/`, junto al ejecutable —`FunshiEngineC_<AAAAMMDD_HHMMSS>.log`, con
   timestamp **UTC**—, así que el editor no abre consola. Es lo primero que hay
   que mirar cuando algo falla.
 
@@ -206,23 +199,6 @@ cd FunshiEngineGL && ./build/FunshiEngineGL.exe   # Windows
   estrictamente APPEND-ONLY. Los campos nuevos van SIEMPRE al final, antes del
   campo `int version`; nunca reordenar ni borrar entradas. El campo `version`
   se incrementa al agregar funcionalidad.
-- **API de inspección de escena (`src/Inspeccion/`)**: es el contrato público
-  del motor para herramientas externas. La **CLI es un proyecto aparte**
-  (`FunshiEngineCLI`) que consume este contrato: el motor publica la API y la
-  CLI la usa, no hay un ejecutable de línea de comandos en este repositorio.
-  - El contrato tiene **versión propia** (`versionApiEscena`), independiente de
-    `versionRuntimeScript`: cambiar uno no invalida el otro ni recompila los
-    scripts de los proyectos.
-  - `src/Comandos/` **no** depende de `src/Inspeccion/` (para no crear un
-    ciclo de módulos): `AjustarVariableComando` recibe los accesores por
-    inyección. La dependencia va en un solo sentido: `Inspeccion` → `Comandos`.
-  - Toda mutación de la API pasa por el `GestorComandos`. Como
-    `GestorComandos::ejecutar` no puede fallar, la API valida antes de
-    encolar (objeto existente, tipo conocido, prerrequisito cumplido, valor
-    interpretable) y devuelve el motivo del rechazo.
-  - Las variables de los componentes se acceden por sus getters y setters
-    públicos, nunca por el dato interno: `Transform` guarda dos copias de su
-    estado y solo los setters las sincronizan.
 - **Modularidad**: los módulos se comunican por tablas de punteros a función
   (patrón de `ScriptGameObject.cpp`, implementado en una TU del ejecutable) o
   por inyección explícita (`GameScene::inyectarServiciosScript`). No acoplar
@@ -233,19 +209,6 @@ cd FunshiEngineGL && ./build/FunshiEngineGL.exe   # Windows
   mantener compatibilidad de prefijos y acotar lecturas con `std::min`.
 - **Física** detrás de la fachada `PhysicsEngine` → `IPhysicsBackend`; no usar
   Bullet fuera de `Fisicas/`.
-- **Sistema de partículas** (`src/Particulas/`): la simulación es CPU pura y
-  no toca ni OpenGL ni glm, para que se pueda probar entera en los targets
-  headless. El módulo no depende del motor; el componente `EmisorParticulas`
-  (en `Objetos/Componentes/`) es quien usa el motor, y el renderer recibe el
-  sistema con datos planos, sin conocer el emisor.
-- **Interfaz de juego nativa** (`src/UI/`): el módulo es CPU puro y no toca ni
-  OpenGL ni glm ni ImGui, para que se pueda probar entero en los targets
-  headless. El componente `UIComponent` (en `Objetos/Componentes/`) y el
-  renderer `UIRenderer` (en `Rendering/`) son los que usan el motor, y el
-  renderer es el único que sabe de ImGui. El nombre del tipo persistido **es**
-  el formato de datos: ampliar un componente obliga a versionar su payload, así
-  que un sistema nuevo que cambie un componente existente se vuelve un
-  componente nuevo.
 - **Compatibilidad multiplataforma**: el motor es compatible con **Linux y Windows**,
   sin excepción. Al usar APIs nativas del sistema operativo (Windows API, POSIX,
   filesystem, threading, dynamic loading, etc.), SIEMPRE verificar y mantener las
@@ -271,6 +234,65 @@ cd FunshiEngineGL && ./build/FunshiEngineGL.exe   # Windows
     cubre con sonda local o CI en la plataforma real; la decisión queda a evaluar
     según la funcionalidad.
 
+## Arquitectura de render: la API gráfica es intercambiable
+
+El core **no implementa ninguna API gráfica**. Define el *contrato* que cualquier
+backend tiene que respetar y deja la implementación en blanco: el backend por
+defecto es `BackendNulo`, que cumple el contrato entero sin dibujar nada. Un
+backend real se instala con `Rendering::Backend::instalarBackend()` antes de
+arrancar el bucle.
+
+| Pieza | Archivo | Qué aporta |
+|---|---|---|
+| Contrato de render | `src/Rendering/ContratoRender.h` | Tipos de programa (`ShaderKind`), nombres y tipos de los uniformes por tipo de programa, layout de vértices, máximo de luces, estructuras de vértice. |
+| Contrato del backend | `src/Rendering/Backend/IRenderBackend.h` | La interfaz que implementa el backend: recursos (malla, batch de líneas, texturas 2D, cubemap, render target, programa), estado (viewport, profundidad, blend) y draws. |
+| Backend nulo | `src/Rendering/Backend/BackendNulo.{h,cpp}` | La implementación en blanco: `init()` correcto, `available()` falso, recursos inválidos. |
+| Backend activo | `src/Rendering/Backend/BackendActivo.cpp` | La instancia activa: `activeBackend()` y `instalarBackend()`. |
+| Fachada de la interfaz | `src/ImGui/BackendImGui.h` + `BackendImGuiNulo.cpp` | `MotorImGui::{init,shutdown,newFrame,render,hayRenderer,nombreRenderer}`; en el core la implementación es nula. |
+
+Reglas que se sostienen en este repositorio:
+
+- **El motor no habla el dialecto de ninguna API.** El texto del shader (GLSL,
+  SPIR-V o el que corresponda) vive en el backend: el motor pide un programa por
+  tipo (`createProgram(ShaderKind)`) y el backend lo construye con su dialecto.
+- **Los uniformes se escriben con las constantes del contrato**, nunca con
+  literales: `Rendering::Contrato::Uniforme::kModel`, `kTint`, etc. El backend
+  resuelve por nombre y ese nombre tiene una sola fuente de verdad. Los arrays
+  de luces se escriben con el nombre del array y el índice entre corchetes
+  (`"uLightTypes[0]"`), que es la forma que el backend tiene que reconocer.
+- **Cada tipo de programa declara la semántica de sus uniformes** en
+  `Contrato::Detalle`. Un renderer no puede usar un uniforme que su tipo de
+  programa no expone.
+- **`uniformLocation` es un token opaco** del backend, no una *location* de una
+  API concreta: puede ser un offset de bloque, un índice de descriptor o una
+  location. El motor solo lo reenvía a los `setUniform*`; `-1` significa que el
+  programa no expone ese uniforme.
+- **La ventana no pide contexto gráfico**: se crea con `GLFW_NO_API` y la
+  superficie la crea el backend, que es quien sabe hacerlo. Por eso el backend
+  se inicializa con la ventana (`init(void* ventanaNativa)`), y ese arranque lo
+  hace `Ventana::initVentana()`.
+- **El límite de frame es del contrato**: `beginFrame()` y `endFrame()` abren y
+  cierran cada frame. El motor no llama a `glfwSwapBuffers`: el intercambio de
+  buffers es un detalle de la API gráfica, no del motor.
+- **`init()` es el arranque, `available()` es la consulta**: los renderers
+  preguntan `available()` antes de dibujar (no `init()`, que es de una sola vez
+  y necesita la ventana).
+- **El estado que la API exige para dibujar lo prepara el backend**, nunca el
+  llamador (patrón documentado en `DocuTecnicoBugs.md`).
+- El test `contrato-render-tests` (`tests/ContratoRenderTests.cpp`) verifica el
+  contrato, el backend nulo y un backend de mentira, y además hace un *source
+  lint* de los renderers: falla si alguno escribe un uniforme con un literal o
+  si usa un uniforme que su tipo de programa no expone.
+
+## Plan de trabajo en curso
+
+El plan vive en `.agentes/` (ignorado por git) y se actualiza en cada paso.
+
+| Plan | Repositorio | Objetivo | Estado |
+|---|---|---|---|
+| `PLAN CORE SIN API GRAFICA.md` | este | Dejar el core sin API gráfica implementada: contrato de render, backend nulo, ventana sin contexto y fachadas de interfaz. | Cerrado |
+| `PLAN IMPLEMENTACION VULKAN.md` | `FunshiEngineVulkan` | Implementar el backend Vulkan sobre el contrato e integrarlo con los renderers y la interfaz. | En curso |
+
 ## Memoria de trabajo: documentos locales ignorados por git
 
 Todo el estado local que un agente necesita para retomar el trabajo sin
@@ -285,25 +307,15 @@ versiona; es la memoria de trabajo del agente.
 | `.agentes/PLAN GENERAL DE FIX.md` | Lote de correcciones: cada hallazgo con su cadena `síntoma → evidencia → causa → fix → test`, la tabla de avance con los commits que cierran cada ítem y lo que queda por validar. |
 | `.agentes/auditorias/` | Informes de auditoría por área, uno por archivo: qué se revisó, qué se encontró, con evidencia `archivo:línea`, y si es regresión de un commit reciente o deuda preexistente. |
 | `.agentes/pendiente-revision/PENDIENTE_DE_REVISAR.md` | Lista local de verificaciones manuales todavía pendientes; no forma parte de la documentación versionada del proyecto. |
-| `.agentes/plan-*.md` | Planes de trabajo por tema (integración de un sistema, lote de fixes, refactor): qué se va a construir, en qué orden, con qué arquitectura y cómo se valida. |
 
 Reglas:
 
-- **Los planes de integración, de corrección y de refactor van siempre en
-  `.agentes/`**: un plan de trabajo (qué sistemas se integran, en qué orden,
-  con qué arquitectura, con qué testers) es material del agente, no
-  documentación del proyecto, así que **no se versiona**. Si el plan ya está
-  escrito y en la raíz del repo, se mueve a `.agentes/` y se retira del
-  árbol versionado con un commit propio. Del plan solo se versiona lo que
-  describe el proyecto terminado (la arquitectura que queda, el manual de uso
-  y el registro de bugs), y eso va en los `.md` del repo, en el commit que lo
-  justifica.
 - **Crear lo que haga falta, manteniendo la raíz ordenada**: `.agentes/` es
   extensible. Un informe nuevo de una revisión puntual es un archivo nuevo en
-  `.agentes/auditorias/`; un plan nuevo es un archivo nuevo
-  `.agentes/plan-<tema>.md` (un tema que ya no tiene archivo propio se agrupa
-  en un `.md` con nombre claro en `.agentes/`). No crear archivos sueltos en
-  la raíz del repo: la raíz es del proyecto, `.agentes/` es del agente.
+  `.agentes/auditorias/`; un tema que ya no tiene archivo propio (por ejemplo
+  un informe de depuración grande) se agrupa en un `.md` con nombre claro en
+  `.agentes/`. No crear archivos sueltos en la raíz del repo: la raíz es del
+  proyecto, `.agentes/` es del agente.
 - **Si falta un archivo, recrearlo**: reconstruir su contenido desde el estado
   real (git log, código fuente, esta guía) y tratarlo desde ese momento como
   la fuente de contexto de la tarea — no empezar de cero sin comprobar antes
@@ -491,20 +503,6 @@ Reglas:
   3. Esperar confirmación antes de ejecutarlo.
   Esto evita pérdida accidental de trabajo del usuario o cambios ajenos sin
   commitear.
-- **El historial publicado no se reescribe**: no se ejecutan comandos que
-  cambien el hash o la firma de los commits que ya están en el historial
-  compartido: `git commit --amend` sobre un commit ya pusheado, `git rebase`
-  (incluida la variante interactiva), `git rebase --onto`, `git filter-branch`,
-  `git filter-repo`, `git commit-tree`, `git replace`, `git notes` sobre commits
-  publicados, o un `git push --force` que reescriba una rama o un tag ya
-  publicado. Un commit ya publicado se corrige con un commit **nuevo** que
-  explique la corrección. La única excepción es `git commit --amend` sobre un
-  commit que nunca salió del equipo (no se ha pusheado): su hash cambia solo
-  en local y desaparece al pushear. Si aun así hacer falta reescribir el
-  historial, se reporta al usuario y se espera su decisión. Mover un tag que
-  todavía no se publicó no cambia el hash de ningún commit, pero sigue rigiendo
-  la regla de "Comandos destructivos requieren permiso y justificación": se
-  pide permiso explícito al usuario.
 - Validar antes de commitear: build completo + `ctest` en verde. Si el cambio
   cierra un bug, además la comprobación que corresponda según "Depuración de
   bugs: instrumentación y validación": test rojo→verde, sanitizer cuando toque
@@ -513,12 +511,8 @@ Reglas:
   por otros colaboradores (no tocados por el agente), reportar el fallo,
   indicar que hay cambios ajenos pendientes, y esperar instrucciones;
   NO modificar archivos ajenos para "arreglar" el build.
-- El CI (`.github/workflows/ci.yml`) compila el engine en Ubuntu, compila y
-  **enlaza** el engine en Windows con MSVC (generador por defecto y
-  dependencias de vcpkg, como el job que publica el instalador), corre la
-  suite headless en Linux/Windows, el backend Java en Ubuntu con JDK y las
-  headless en Windows con el generador multi-config (Visual Studio); no
-  pushear sin pasar los tests localmente.
+- El CI (`.github/workflows/ci.yml`) compila el engine en Ubuntu y corre la
+  suite en Linux/Windows/macOS; no pushear sin pasar los tests localmente.
 - **NO confirmar fixes hasta validación del usuario**: nunca declarar un bug
   como "resuelto" o "fix real" hasta que el usuario lo pruebe y lo confirme
   explícitamente. Los tests automatizados (ctest) no cubren flujos visuales

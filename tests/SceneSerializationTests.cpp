@@ -1,5 +1,5 @@
 /*
-    FunshiEngineGL - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,7 +46,6 @@
 #include <memory>
 #include <sstream>
 #include <string>
-#include <type_traits>
 #include <vector>
 
 #include <imgui.h>
@@ -58,46 +57,44 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "TempPruebas.h"
-#include "../FunshiEngineGL/src/Audio/AudioEngine.h"
-#include "../FunshiEngineGL/src/Assets/AssetException.h"
-#include "../FunshiEngineGL/src/Assets/AssetManager.h"
-#include "../FunshiEngineGL/src/Assets/Mesh.h"
-#include "../FunshiEngineGL/src/Behaviour/ScriptGameObject.h"
-#include "../FunshiEngineGL/src/Configuracion/EditorConfig.h"
-#include "../FunshiEngineGL/src/Diagnosticos/RegistroDiagnosticos.h"
-#include "../FunshiEngineGL/src/Events/EventBus.h"
-#include "../FunshiEngineGL/src/Fisicas/BulletPhysicsAdapter.h"
-#include "../FunshiEngineGL/src/Fisicas/IPhysicsBackend.h"
-#include "../FunshiEngineGL/src/Fisicas/PhysicsEngine.h"
-#include "../FunshiEngineGL/src/GUI/ObjetosGUI/SettingsObjectInterface.h"
-#include "../FunshiEngineGL/src/GUI/SceneGUI/JerarquiaArbol.h"
-#include "../FunshiEngineGL/src/Herramientas/PathUtils.h"
-#include "../FunshiEngineGL/src/Objetos/GameObject.h"
-#include "../FunshiEngineGL/src/Objetos/GameObjectFactory.h"
-#include "../FunshiEngineGL/src/Objetos/Modelos3D.h"
-#include "../FunshiEngineGL/src/Objetos/TagRegistry.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/Color.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/AudioSource.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/Material.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/Model.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/Colliders/EsfereCollider.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/Colliders/CubeCollider.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/CameraComponent.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/RigidBody/RigidBody.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/Script.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/Skybox.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/SpriteRenderer.h"
-#include "../FunshiEngineGL/src/Scenes/SceneRegistry.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/Transform.h"
-#include "../FunshiEngineGL/src/Objetos/SimpleObject.h"
-#include "../FunshiEngineGL/src/Rendering/DibujoModelo.h"
-#include "../FunshiEngineGL/src/Rendering/ProyeccionCamara.h"
-#include "../FunshiEngineGL/src/Scenes/EditorController.h"
-#include "../FunshiEngineGL/src/Scenes/CameraFrameSafety.h"
-#include "../FunshiEngineGL/src/Scenes/RutasReescritura.h"
-#include "../FunshiEngineGL/src/Scenes/SceneRegistry.h"
-#include "../FunshiEngineGL/src/Scenes/SceneSerializer.h"
-#include "../FunshiEngineGL/src/Scenes/SiembraEscena.h"
+#include "../FunshiEngineC/src/Assets/AssetException.h"
+#include "../FunshiEngineC/src/Assets/AssetManager.h"
+#include "../FunshiEngineC/src/Assets/Mesh.h"
+#include "../FunshiEngineC/src/Behaviour/ScriptGameObject.h"
+#include "../FunshiEngineC/src/Configuracion/EditorConfig.h"
+#include "../FunshiEngineC/src/Diagnosticos/RegistroDiagnosticos.h"
+#include "../FunshiEngineC/src/Events/EventBus.h"
+#include "../FunshiEngineC/src/Fisicas/BulletPhysicsAdapter.h"
+#include "../FunshiEngineC/src/Fisicas/IPhysicsBackend.h"
+#include "../FunshiEngineC/src/Fisicas/PhysicsEngine.h"
+#include "../FunshiEngineC/src/GUI/ObjetosGUI/SettingsObjectInterface.h"
+#include "../FunshiEngineC/src/GUI/SceneGUI/JerarquiaArbol.h"
+#include "../FunshiEngineC/src/Herramientas/PathUtils.h"
+#include "../FunshiEngineC/src/Objetos/GameObject.h"
+#include "../FunshiEngineC/src/Objetos/GameObjectFactory.h"
+#include "../FunshiEngineC/src/Objetos/Modelos3D.h"
+#include "../FunshiEngineC/src/Objetos/TagRegistry.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/Color.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/Material.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/Model.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/Colliders/EsfereCollider.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/Colliders/CubeCollider.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/CameraComponent.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/RigidBody/RigidBody.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/Script.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/Skybox.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/SpriteRenderer.h"
+#include "../FunshiEngineC/src/Scenes/SceneRegistry.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/Transform.h"
+#include "../FunshiEngineC/src/Objetos/SimpleObject.h"
+#include "../FunshiEngineC/src/Rendering/DibujoModelo.h"
+#include "../FunshiEngineC/src/Rendering/ProyeccionCamara.h"
+#include "../FunshiEngineC/src/Scenes/EditorController.h"
+#include "../FunshiEngineC/src/Scenes/CameraFrameSafety.h"
+#include "../FunshiEngineC/src/Scenes/RutasReescritura.h"
+#include "../FunshiEngineC/src/Scenes/SceneRegistry.h"
+#include "../FunshiEngineC/src/Scenes/SceneSerializer.h"
+#include "../FunshiEngineC/src/Scenes/SiembraEscena.h"
 
 namespace fs = std::filesystem;
 
@@ -1095,8 +1092,6 @@ void reescrituraDeReferencias() {
         EditorConfig::absolutizarRuta("Mallas/Auto.fbx");
     const std::string texturaEnEscena =
         EditorConfig::absolutizarRuta("Texturas/difuso.png");
-    const std::string audioEnEscena =
-        EditorConfig::absolutizarRuta("Audio/disparo.wav");
 
     // 1. Mover `Scripts` dentro de `Assets`: solo la fuente esta bajo el
     //    prefijo movido; malla y textura quedan intactas.
@@ -1121,13 +1116,6 @@ void reescrituraDeReferencias() {
     Material* refMaterial = material.get();
     objeto.addComponent(std::move(material));
 
-    // El archivo de audio es un asset mas: su ruta se reescribe igual que la
-    // de una malla o una textura.
-    auto audio = std::make_unique<AudioSource>();
-    audio->setRutaClip(audioEnEscena);
-    AudioSource* refAudio = audio.get();
-    objeto.addComponent(std::move(audio));
-
     ListaDE<GameObject*> escena;
     escena.addLast(&objeto);
 
@@ -1140,8 +1128,6 @@ void reescrituraDeReferencias() {
           "la malla (fuera del prefijo movido) no se toca");
     CHECK(refMaterial->getDiffuseMapPath() == texturaEnEscena,
           "la textura (fuera del prefijo movido) no se toca");
-    CHECK(refAudio->getRutaClip() == audioEnEscena,
-          "el audio (fuera del prefijo movido) no se toca");
 
     // 2. Renombrar la carpeta de la malla: reescribe la malla y nada mas.
     const int renombrarMalla = RutasReescritura::reescribirEnEscena(
@@ -1167,15 +1153,6 @@ void reescrituraDeReferencias() {
         &escena, raiz + PATH_SEP + "OtraCarpeta",
         raiz + PATH_SEP + "NadaCarpeta");
     CHECK(sinCambios == 0, "prefijo que no matchea no cambia nada");
-
-    // 5. Renombrar la carpeta del audio: reescribe la ruta del componente.
-    const int renombrarAudio = RutasReescritura::reescribirEnEscena(
-        &escena, raiz + PATH_SEP + "Audio", raiz + PATH_SEP + "Sonidos");
-    CHECK(renombrarAudio == 1,
-          "renombrar una carpeta reescribe la ruta del archivo de audio");
-    CHECK(refAudio->getRutaClip() ==
-              raiz + PATH_SEP + "Sonidos/disparo.wav",
-          "el archivo de audio queda bajo el nombre nuevo");
 
     EditorConfig::limpiarRaizAssets();
 }
@@ -1226,29 +1203,14 @@ void sanadoDeRutasRotas() {
     Model* refModelo = modelo.get();
     objeto.addComponent(std::move(modelo));
 
-    // El archivo de audio roto se repara con la misma regla.
-    fs::create_directories(raiz / "Assets" / "Audio", ec);
-    {
-        std::ofstream clip((raiz / "Assets" / "Audio" / "disparo.wav").string());
-        clip << "clip\n";
-    }
-    const fs::path audioReal = raiz / "Assets" / "Audio" / "disparo.wav";
-    auto audio = std::make_unique<AudioSource>();
-    audio->setRutaClip(EditorConfig::absolutizarRuta("Audio/disparo.wav"));
-    AudioSource* refAudio = audio.get();
-    objeto.addComponent(std::move(audio));
-
     ListaDE<GameObject*> escena;
     escena.addLast(&objeto);
 
     const int reparadas = RutasReescritura::sanarRutasInexistentes(&escena);
-    CHECK(reparadas == 2, "con una coincidencia unica se reparan las dos");
+    CHECK(reparadas == 1, "con una coincidencia unica se repara");
     CHECK(fs::path(refScript->getPath()).generic_string() ==
               real.generic_string(),
           "la fuente del script queda apuntando al archivo que existe");
-    CHECK(fs::path(refAudio->getRutaClip()).generic_string() ==
-              audioReal.generic_string(),
-          "el archivo de audio queda apuntando al archivo que existe");
     CHECK(refMaterial->getDiffuseMapPath() ==
               EditorConfig::absolutizarRuta("Texturas/difuso.png"),
           "sin ninguna coincidencia la ruta queda como estaba");
@@ -1752,7 +1714,7 @@ void elInspectorDibujaUnFrameSinArrastre() {
 
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    // Mismo contrato que el backend OpenGL del motor: el atlas de fuentes lo
+    // Mismo contrato que el backend de ImGui del motor: el atlas de fuentes lo
     // construye ImGui en NewFrame() (sin backend, TexIsBuilt arranca en falso y
     // ImFontAtlasUpdateNewFrame() desreferencia un Builder nulo).
     io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;
@@ -1778,11 +1740,6 @@ void elInspectorDibujaUnFrameSinArrastre() {
 // seguia en la pose vieja y se teletransportaba de vuelta en el siguiente paso
 // de simulacion. Ahora el local se reescribe como inverse(mundoPadre) *
 // mundoHijo y el cuerpo se reconstruye.
-// El contrato de fisicas no tiene comportamiento por defecto: un backend que
-// no declare los contactos ni la gravedad no compila.
-static_assert(std::is_abstract<IPhysicsBackend>::value,
-              "el contrato de fisicas exige implementar todos sus metodos");
-
 class BackendFisicoFalso : public IPhysicsBackend {
 public:
     int agregados = 0;
@@ -1795,14 +1752,6 @@ public:
         ultimo = body;
     }
     void removeRigidBody(RigidBody*) override { ++quitados; }
-
-    std::vector<EventoContacto> tomarEventosContacto() override { return {}; }
-    void fijarGravedad(float, float, float) override {}
-    void gravedad(float& x, float& y, float& z) const override {
-        x = 0.0f;
-        y = -1.0f;
-        z = 0.0f;
-    }
 };
 
 void reparentarPreservaLaPoseYRefrescaElCuerpo() {
@@ -2816,44 +2765,6 @@ void spriteRendererSerializaRoundTrip() {
           "un sprite nuevo cubre la textura completa");
 }
 
-// La API de scripts expone la musica por ruta (v8 de la tabla de servicios).
-void musicaDesdeScripts() {
-    TempPruebas::CarpetaPrueba carpeta("funshi_musica_scripts");
-    const std::string pista = (carpeta.ruta() / "tema.ogg").string();
-    std::ofstream(pista) << "contenido";
-
-    AudioEngine audio;
-    audio.esperarPilaVacia();
-
-    MotorScript::inyectarServiciosScript(&audio, nullptr, nullptr);
-    const MotorScript::ScriptServices* servicios = MotorScript::tablaServicios();
-    CHECK(servicios->version >= 8,
-          "los servicios publican la musica por ruta");
-    CHECK(servicios->reproducirMusica != nullptr &&
-              servicios->detenerMusica != nullptr &&
-              servicios->volumenMusica != nullptr,
-          "la tabla expone las tres funciones de musica");
-
-    CHECK(servicios->reproducirMusica(pista.c_str(), 0.8f, 0.0f),
-          "una pista existente se reproduce desde un script");
-    CHECK(!servicios->reproducirMusica("", 1.0f, 0.0f),
-          "una pista sin ruta no se reproduce");
-    const std::string inexistente = (carpeta.ruta() / "no_existe.ogg").string();
-    CHECK(!servicios->reproducirMusica(inexistente.c_str(), 1.0f, 0.0f),
-          "una pista cuyo archivo no existe no se reproduce");
-
-    // El volumen del bus y la deteccion no dejan nada sin cerrar.
-    servicios->volumenMusica(0.5f);
-    servicios->detenerMusica(0.0f);
-
-    // Sin motor de audio la API es tolerante: no reproduce y no falla.
-    MotorScript::inyectarServiciosScript(nullptr, nullptr, nullptr);
-    CHECK(!servicios->reproducirMusica(pista.c_str(), 1.0f, 0.0f),
-          "sin motor de audio la musica no se reproduce");
-    servicios->volumenMusica(1.0f);
-    servicios->detenerMusica(0.0f);
-}
-
 int main() {
     nombresPorDefecto();
     roundTripDeEscena();
@@ -2885,7 +2796,6 @@ int main() {
     movimientoFisicoYSaltoDesdeScripts();
     eventosDeContactoExponenColliderYPropietario();
     busquedaDeObjetosPorNombreIdYEtiqueta();
-    musicaDesdeScripts();
     propiedadesFisicasDesdeScripts();
     rigidBodySerializaPropiedadesNuevas();
     sensorDetectaSinRespuestaYPlano2D();

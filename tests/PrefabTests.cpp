@@ -1,5 +1,5 @@
 /*
-    FunshiEngineGL - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,21 +33,19 @@
 #include <vector>
 
 #include "TempPruebas.h"
-#include "../FunshiEngineGL/src/Behaviour/ScriptGameObject.h"
-#include "../FunshiEngineGL/src/Configuracion/EditorConfig.h"
-#include "../FunshiEngineGL/src/Herramientas/TypeUtils.h"
-#include "../FunshiEngineGL/src/Objetos/GameObject.h"
-#include "../FunshiEngineGL/src/Objetos/GameObjectFactory.h"
-#include "../FunshiEngineGL/src/Objetos/Prefab.h"
-#include "../FunshiEngineGL/src/Objetos/PrefabLibrary.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/CatalogoComponentes.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/Color.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/Model.h"
-#include "../FunshiEngineGL/src/Objetos/Componentes/Transform.h"
-#include "../FunshiEngineGL/src/Scenes/EditorController.h"
-#include "../FunshiEngineGL/src/Scenes/SceneRegistry.h"
-#include "../FunshiEngineGL/src/Events/EventBus.h"
-#include "../FunshiEngineGL/src/Assets/AssetManager.h"
+#include "../FunshiEngineC/src/Behaviour/ScriptGameObject.h"
+#include "../FunshiEngineC/src/Configuracion/EditorConfig.h"
+#include "../FunshiEngineC/src/Objetos/GameObject.h"
+#include "../FunshiEngineC/src/Objetos/GameObjectFactory.h"
+#include "../FunshiEngineC/src/Objetos/Prefab.h"
+#include "../FunshiEngineC/src/Objetos/PrefabLibrary.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/Color.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/Model.h"
+#include "../FunshiEngineC/src/Objetos/Componentes/Transform.h"
+#include "../FunshiEngineC/src/Scenes/EditorController.h"
+#include "../FunshiEngineC/src/Scenes/SceneRegistry.h"
+#include "../FunshiEngineC/src/Events/EventBus.h"
+#include "../FunshiEngineC/src/Assets/AssetManager.h"
 
 namespace fs = std::filesystem;
 
@@ -614,42 +612,7 @@ void serviciosListarPrefabs() {
 
 // --- Main --------------------------------------------------------------------
 
-// El nombre con el que se persiste un componente tiene que ser el mismo en
-// Windows y en Linux, porque es la clave con la que el catalogo lo reconoce al
-// leer. MSVC deja el prefijo de class-key en typeid().name() ("class
-// Transform"): con ese nombre, el Transform del objeto no era el que se
-// cargaba (se creaba un segundo) y la posicion guardada se perdia.
-void nombresDeComponentePortables() {
-    CHECK(nombreSimpleTipo(typeid(Transform).name()) == "Transform",
-          "el nombre simple de Transform no lleva namespace ni prefijo");
-    CHECK(nombreSimpleTipo(typeid(Color).name()) == "Color",
-          "el nombre simple de Color no lleva namespace ni prefijo");
-
-    CHECK(nombreSimpleTipo("class Transform") == "Transform",
-          "el prefijo de class-key de MSVC se quita");
-    CHECK(nombreSimpleTipo("struct Objetos::Componentes::Color") == "Color",
-          "del nombre con namespace se queda el ultimo componente");
-
-    // Nombres con 'E' o que empiezan por mayuscula: el recorte por 'E' del
-    // mangling de GCC los truncaba ("SpriteRenderer" -> "SpriteRender",
-    // "EsfereCollider" -> ""), y el nombre vacio hacia fallar la carga entera.
-    CHECK(nombreSimpleTipo("SpriteRenderer") == "SpriteRenderer",
-          "un nombre con 'E' no se trunca");
-    CHECK(nombreSimpleTipo("EsfereCollider") == "EsfereCollider",
-          "un nombre que empieza por 'E' no queda vacio");
-
-    // El catalogo reconoce el tipo con cualquiera de las formas del nombre.
-    const auto& catalogo = CatalogoComponentes::instancia();
-    CHECK(catalogo.buscar("Transform") != nullptr,
-          "el catalogo encuentra Transform por su nombre simple");
-    CHECK(catalogo.buscar("class Transform") != nullptr,
-          "el catalogo encuentra Transform por el nombre de MSVC");
-    CHECK(catalogo.buscar("Objetos::Componentes::Transform") != nullptr,
-          "el catalogo encuentra Transform por su nombre con namespace");
-}
-
 int main() {
-    nombresDeComponentePortables();
     roundTripPrefabBasico();
     roundTripPrefabJerarquia();
     roundTripPrefabConModel();

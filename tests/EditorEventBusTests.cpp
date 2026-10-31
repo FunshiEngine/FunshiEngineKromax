@@ -1,5 +1,5 @@
 /*
-    FunshiEngineGL - Motor de juegos 3D con OpenGL e ImGui
+    FunshiEngineC - Motor de juegos 3D con API grafica intercambiable e ImGui
     Copyright 2026 Gianfranco Ivan Enrique
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,12 +18,12 @@
 */
 // Pruebas headless de EditorEventBus (el canal tipado de GUI interna):
 // subscribe/publish/unsubscribe con payload declarativo y varios suscriptores.
-// Sin pila grafica: solo std C++17 (EditoreventBus no toca ImGui/OpenGL).
+// Sin pila grafica: solo std C++17 (EditoreventBus no toca ImGui ni la API grafica).
 
 #include <iostream>
 #include <string>
 
-#include "../FunshiEngineGL/src/Events/EditorEventBus.h"
+#include "../FunshiEngineC/src/Events/EditorEventBus.h"
 
 namespace {
 int total = 0;
